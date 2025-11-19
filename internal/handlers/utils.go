@@ -4,6 +4,9 @@ import (
 	"html/template"
 	"net/http"
 	"path/filepath"
+
+	"github.com/MarcosAndradeV/go-ecommerce/internal/database"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // O envelope que vai para o HTML
@@ -42,4 +45,12 @@ func renderTemplate(w http.ResponseWriter, r *http.Request, tmplName string, dat
 	if err != nil {
 		http.Error(w, "Erro renderização: "+err.Error(), 500)
 	}
+}
+
+type Handler struct {
+	db *database.MongoStore
+}
+
+func (h *Handler) GetCollection(name string) *mongo.Collection {
+	return h.db.DB.Collection(name)
 }

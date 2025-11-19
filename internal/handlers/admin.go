@@ -6,22 +6,21 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/MarcosAndradeV/go-ecommerce/internal/database"
 	"github.com/MarcosAndradeV/go-ecommerce/internal/models"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
 // Dashboard Admin
-func AdminDashboard(w http.ResponseWriter, r *http.Request) {
+func (h*Handler) AdminDashboard(w http.ResponseWriter, r *http.Request) {
 	// Verifica Login
 	if !CheckAuth(r) {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 
-	coll := database.GetCollection("products")
+	coll := h.GetCollection("products")
 	cursor, _ := coll.Find(context.TODO(), bson.M{})
-	
+
 	var products []models.Product
 	cursor.All(context.TODO(), &products)
 
@@ -29,7 +28,7 @@ func AdminDashboard(w http.ResponseWriter, r *http.Request) {
 }
 
 // Criar Produto
-func AdminCreateProduct(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) AdminCreateProduct(w http.ResponseWriter, r *http.Request) {
 	if !CheckAuth(r) {
 		http.Redirect(w, r, "/login", http.StatusUnauthorized)
 		return
@@ -51,7 +50,7 @@ func AdminCreateProduct(w http.ResponseWriter, r *http.Request) {
 		Stock:       stock,
 	}
 
-	coll := database.GetCollection("products")
+	coll := h.GetCollection("products")
 	coll.InsertOne(context.TODO(), product)
 
 	http.Redirect(w, r, "/admin", http.StatusSeeOther)

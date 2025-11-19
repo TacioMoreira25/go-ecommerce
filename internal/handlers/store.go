@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/MarcosAndradeV/go-ecommerce/internal/database"
 	"github.com/MarcosAndradeV/go-ecommerce/internal/models"
 	"github.com/go-chi/chi/v5"
 	"go.mongodb.org/mongo-driver/bson"
@@ -13,10 +12,10 @@ import (
 )
 
 // Home: Lista produtos
-func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	coll := database.GetCollection("products")
+func (h *Handler) HomeHandler(w http.ResponseWriter, r *http.Request) {
+	coll := h.db.DB.Collection("products")
 	cursor, _ := coll.Find(context.TODO(), bson.M{})
-	
+
 	var products []models.Product
 	cursor.All(context.TODO(), &products)
 
@@ -24,11 +23,11 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // Detalhe do Produto
-func ProductDetailHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) ProductDetailHandler(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	objID, _ := primitive.ObjectIDFromHex(idStr)
 
-	coll := database.GetCollection("products")
+	coll := h.db.DB.Collection("products")
 	var product models.Product
 	coll.FindOne(context.TODO(), bson.M{"_id": objID}).Decode(&product)
 
@@ -36,11 +35,11 @@ func ProductDetailHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // Página de Checkout (GET)
-func CheckoutPageHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) CheckoutPageHandler(w http.ResponseWriter, r *http.Request) {
 	idStr := r.URL.Query().Get("product_id")
 	objID, _ := primitive.ObjectIDFromHex(idStr)
 
-	coll := database.GetCollection("products")
+	coll := h.db.DB.Collection("products")
 	var product models.Product
 	coll.FindOne(context.TODO(), bson.M{"_id": objID}).Decode(&product)
 
@@ -48,17 +47,17 @@ func CheckoutPageHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // Processar Compra (POST)
-func PurchaseHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) PurchaseHandler(w http.ResponseWriter, r *http.Request) {
 	// 1. Dados do Form
 	productID, _ := primitive.ObjectIDFromHex(r.FormValue("product_id"))
 	name := r.FormValue("name")
 	email := r.FormValue("email")
 
 	// 2. Buscar Produto Real no Banco (Segurança de Preço)
-	collProds := database.GetCollection("products")
+	collProds := h.db.DB.Collection("products")
 	var product models.Product
 	err := collProds.FindOne(context.TODO(), bson.M{"_id": productID}).Decode(&product)
-	
+
 	if err != nil || product.Stock <= 0 {
 		http.Error(w, "Produto esgotado ou inválido", http.StatusBadRequest)
 		return
@@ -83,10 +82,10 @@ func PurchaseHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 4. Transação (Simulada): Salvar Pedido e Baixar Estoque
-	collOrders := database.GetCollection("orders")
+	collOrders := h.db.DB.Collection("orders")
 	collOrders.InsertOne(context.TODO(), order)
 
-	collProds.UpdateOne(context.TODO(), 
+	collProds.UpdateOne(context.TODO(),
 		bson.M{"_id": productID},
 		bson.M{"$inc": bson.M{"stock": -1}},
 	)
