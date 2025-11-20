@@ -63,7 +63,7 @@ func (s *StoreService) GetProductDetails(idStr string) (*models.Product, error) 
 	return s.Repo.GetProductByID(objID)
 }
 
-func (s *StoreService) ProcessCartPurchase(userIDStr, customerName, customerEmail, cardNum, cardCVV string, selectedItems []string) error {
+func (s *StoreService) ProcessCartPurchase(userIDStr, customerName, customerEmail, customerAddress, cardNum, cardCVV string, selectedItems []string) error {
 	userID, _ := primitive.ObjectIDFromHex(userIDStr)
 
 	// 1. Buscar Carrinho do Usuário
@@ -118,18 +118,19 @@ func (s *StoreService) ProcessCartPurchase(userIDStr, customerName, customerEmai
 			s.Repo.DecrementStock(item.ProductID)
 		}
 		// Remove do carrinho
-		s.Repo.RemoveItemFromCart(userID, item.ProductID)
+		s.Repo.RemoveItemFromCart(userID, item.ProductID, item.Size)
 	}
 
 	// 5. Gerar Pedido
 	order := models.Order{
-		ID:            primitive.NewObjectID(),
-		CustomerName:  customerName,
-		CustomerEmail: customerEmail,
-		Status:        "PAGO",
-		Total:         total,
-		CreatedAt:     time.Now(),
-		Items:         itemsToBuy,
+		ID:              primitive.NewObjectID(),
+		CustomerName:    customerName,
+		CustomerEmail:   customerEmail,
+		CustomerAddress: customerAddress,
+		Status:          "PAGO",
+		Total:           total,
+		CreatedAt:       time.Now(),
+		Items:           itemsToBuy,
 	}
 
 	return s.Repo.CreateOrder(order)
@@ -167,11 +168,11 @@ func (s *StoreService) AddProductToCart(userIDStr, productIDStr string, quantity
 	return s.Repo.AddItemToCart(userID, item)
 }
 
-func (s *StoreService) RemoveProductFromCart(userIDStr, productIDStr string) error {
+func (s *StoreService) RemoveProductFromCart(userIDStr, productIDStr, size string) error {
 	userID, _ := primitive.ObjectIDFromHex(userIDStr)
 	productID, _ := primitive.ObjectIDFromHex(productIDStr)
 
-	return s.Repo.RemoveItemFromCart(userID, productID)
+	return s.Repo.RemoveItemFromCart(userID, productID, size)
 }
 
 func (s *StoreService) GetUserCart(userIDStr string) (*models.User, float64, error) {

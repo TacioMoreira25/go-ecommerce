@@ -1,0 +1,226 @@
+{{define "content"}}
+<div class="max-w-4xl mx-auto mt-6">
+  <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-200">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">Pagamento</h2>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Resumo do Pedido -->
+      <div class="lg:col-span-1 order-2 lg:order-1">
+        <div class="bg-gray-50 p-6 rounded-xl border border-gray-200">
+          <h3 class="text-sm font-bold text-gray-500 uppercase mb-4">Resumo</h3>
+          <div class="space-y-3 mb-4">
+            {{range .Data.Items}}
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-600"
+                >{{.Quantity}}x {{.ProductName}} {{if
+                .Size}}({{.Size}}){{end}}</span
+              >
+              <span class="font-medium">{{.TotalItem}}</span>
+            </div>
+            {{end}}
+          </div>
+          <div
+            class="pt-4 border-t border-gray-200 flex justify-between items-center"
+          >
+            <span class="font-bold text-gray-800">Total</span>
+            <span class="font-bold text-xl text-green-600"
+              >R$ {{printf "%.2f" .Data.Total}}</span
+            >
+          </div>
+        </div>
+
+        <div class="mt-6">
+          <h3 class="text-xs font-bold text-gray-500 uppercase mb-2">
+            Enviar para:
+          </h3>
+          <p class="text-sm text-gray-700">{{.Data.Shipping.Name}}</p>
+          <p class="text-sm text-gray-600">{{.Data.Shipping.Address}}</p>
+        </div>
+      </div>
+
+      <!-- Opções de Pagamento -->
+      <div class="lg:col-span-2 order-1 lg:order-2">
+        <form action="/purchase" method="POST" id="paymentForm">
+          <!-- Hidden Fields -->
+          <input type="hidden" name="name" value="{{.Data.Shipping.Name}}" />
+          <input type="hidden" name="email" value="{{.Data.Shipping.Email}}" />
+          <input
+            type="hidden"
+            name="address"
+            value="{{.Data.Shipping.Address}}"
+          />
+          {{range .Data.SelectedItems}}
+          <input type="hidden" name="selected_items" value="{{.}}" />
+          {{end}}
+
+          <div class="mb-6">
+            <label class="block text-sm font-bold text-gray-700 mb-3"
+              >Escolha a forma de pagamento</label
+            >
+            <div class="grid grid-cols-3 gap-4">
+              <label class="cursor-pointer">
+                <input
+                  type="radio"
+                  name="payment_method"
+                  value="credit_card"
+                  class="peer sr-only"
+                  checked
+                  onchange="togglePayment('card')"
+                />
+                <div
+                  class="p-4 rounded-lg border-2 border-gray-200 peer-checked:border-blue-600 peer-checked:bg-blue-50 hover:bg-gray-50 transition text-center"
+                >
+                  <span
+                    class="block font-bold text-gray-700 peer-checked:text-blue-700"
+                    >Cartão</span
+                  >
+                </div>
+              </label>
+              <label class="cursor-pointer">
+                <input
+                  type="radio"
+                  name="payment_method"
+                  value="pix"
+                  class="peer sr-only"
+                  onchange="togglePayment('pix')"
+                />
+                <div
+                  class="p-4 rounded-lg border-2 border-gray-200 peer-checked:border-blue-600 peer-checked:bg-blue-50 hover:bg-gray-50 transition text-center"
+                >
+                  <span
+                    class="block font-bold text-gray-700 peer-checked:text-blue-700"
+                    >PIX</span
+                  >
+                </div>
+              </label>
+              <label class="cursor-pointer">
+                <input
+                  type="radio"
+                  name="payment_method"
+                  value="boleto"
+                  class="peer sr-only"
+                  onchange="togglePayment('boleto')"
+                />
+                <div
+                  class="p-4 rounded-lg border-2 border-gray-200 peer-checked:border-blue-600 peer-checked:bg-blue-50 hover:bg-gray-50 transition text-center"
+                >
+                  <span
+                    class="block font-bold text-gray-700 peer-checked:text-blue-700"
+                    >Boleto</span
+                  >
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Cartão de Crédito -->
+          <div id="card-form" class="space-y-4">
+            <div class="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-4">
+              <p class="text-sm text-blue-800">Pagamento seguro simulado.</p>
+            </div>
+            <div>
+              <label
+                class="block text-xs font-bold text-gray-500 uppercase mb-1"
+                >Nome no Cartão</label
+              >
+              <input
+                type="text"
+                name="card_name"
+                value="{{.Data.Shipping.Name}}"
+                class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:border-blue-500 transition"
+              />
+            </div>
+            <div>
+              <label
+                class="block text-xs font-bold text-gray-500 uppercase mb-1"
+                >Número do Cartão</label
+              >
+              <input
+                type="text"
+                name="card_number"
+                placeholder="0000 0000 0000 0000"
+                class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:border-blue-500 transition"
+              />
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label
+                  class="block text-xs font-bold text-gray-500 uppercase mb-1"
+                  >Validade</label
+                >
+                <input
+                  type="text"
+                  name="card_expiry"
+                  placeholder="MM/AA"
+                  class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:border-blue-500 transition"
+                />
+              </div>
+              <div>
+                <label
+                  class="block text-xs font-bold text-gray-500 uppercase mb-1"
+                  >CVV</label
+                >
+                <input
+                  type="text"
+                  name="card_cvv"
+                  placeholder="123"
+                  class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:border-blue-500 transition"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- PIX -->
+          <div
+            id="pix-form"
+            class="hidden text-center py-8 bg-gray-50 rounded-xl border border-gray-200"
+          >
+            <p class="font-bold text-gray-800 mb-2">Pagamento via PIX</p>
+            <p class="text-sm text-gray-600 mb-4">
+              O código QR será gerado na próxima tela.
+            </p>
+            <div
+              class="w-32 h-32 bg-gray-200 mx-auto rounded-lg flex items-center justify-center text-gray-400 text-xs"
+            >
+              QR Code Simulado
+            </div>
+          </div>
+
+          <!-- Boleto -->
+          <div
+            id="boleto-form"
+            class="hidden text-center py-8 bg-gray-50 rounded-xl border border-gray-200"
+          >
+            <p class="font-bold text-gray-800 mb-2">Pagamento via Boleto</p>
+            <p class="text-sm text-gray-600">
+              O boleto será gerado e enviado para seu e-mail.
+            </p>
+          </div>
+
+          <button
+            type="submit"
+            class="w-full bg-green-600 text-white font-bold py-4 rounded-lg hover:bg-green-700 shadow-sm transition duration-200 mt-6 text-lg"
+          >
+            Confirmar Pagamento
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function togglePayment(method) {
+    document.getElementById("card-form").classList.add("hidden");
+    document.getElementById("pix-form").classList.add("hidden");
+    document.getElementById("boleto-form").classList.add("hidden");
+
+    if (method === "card")
+      document.getElementById("card-form").classList.remove("hidden");
+    if (method === "pix")
+      document.getElementById("pix-form").classList.remove("hidden");
+    if (method === "boleto")
+      document.getElementById("boleto-form").classList.remove("hidden");
+  }
+</script>
+{{end}}

@@ -57,9 +57,9 @@
 
     <div class="md:col-span-2 order-1 md:order-2">
       <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-200">
-        <h2 class="text-xl font-bold text-gray-800 mb-6">Pagamento Simulado</h2>
+        <h2 class="text-xl font-bold text-gray-800 mb-6">Dados de Entrega</h2>
 
-        <form action="/purchase" method="POST" class="space-y-5">
+        <form action="/payment" method="POST" class="space-y-5">
           <!-- Hidden fields for selected items to purchase -->
           {{range .Data.Cart}}
           <input
@@ -73,11 +73,11 @@
             <div class="md:col-span-2">
               <label
                 class="block text-xs font-bold text-gray-500 uppercase mb-1"
-                >Nome no Cartão</label
+                >Nome Completo</label
               >
               <input
                 type="text"
-                name="card_name"
+                name="name"
                 required
                 value="{{.Data.User.Name}}"
                 class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:border-blue-500 transition"
@@ -87,13 +87,27 @@
             <div class="md:col-span-2">
               <label
                 class="block text-xs font-bold text-gray-500 uppercase mb-1"
-                >Número do Cartão</label
+                >Email</label
+              >
+              <input
+                type="email"
+                name="email"
+                required
+                value="{{.Data.User.Email}}"
+                class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:border-blue-500 transition"
+              />
+            </div>
+
+            <div class="md:col-span-2">
+              <label
+                class="block text-xs font-bold text-gray-500 uppercase mb-1"
+                >Endereço Completo</label
               >
               <input
                 type="text"
-                name="card_number"
+                name="address"
                 required
-                placeholder="0000 0000 0000 0000"
+                placeholder="Rua, Número, Bairro"
                 class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:border-blue-500 transition"
               />
             </div>
@@ -101,26 +115,25 @@
             <div>
               <label
                 class="block text-xs font-bold text-gray-500 uppercase mb-1"
-                >Validade</label
+                >Cidade</label
               >
               <input
                 type="text"
-                name="card_expiry"
+                name="city"
                 required
-                placeholder="MM/AA"
                 class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:border-blue-500 transition"
               />
             </div>
             <div>
               <label
                 class="block text-xs font-bold text-gray-500 uppercase mb-1"
-                >CVV</label
+                >CEP</label
               >
               <input
                 type="text"
-                name="card_cvv"
+                name="zip"
                 required
-                placeholder="123"
+                placeholder="00000-000"
                 class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:border-blue-500 transition"
               />
             </div>
@@ -128,9 +141,9 @@
 
           <button
             type="submit"
-            class="w-full bg-green-600 text-white font-bold py-4 rounded-lg hover:bg-green-700 shadow-sm transition duration-200 mt-4 text-lg"
+            class="w-full bg-blue-600 text-white font-bold py-4 rounded-lg hover:bg-blue-700 shadow-sm transition duration-200 mt-4 text-lg"
           >
-            Pagar R$ {{ printf "%.2f" .Data.Total }}
+            Ir para Pagamento
           </button>
         </form>
       </div>

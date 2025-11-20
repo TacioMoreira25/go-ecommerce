@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/MarcosAndradeV/go-ecommerce/internal/models"
 	"github.com/MarcosAndradeV/go-ecommerce/internal/service"
 	"github.com/go-chi/chi/v5"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -73,9 +74,10 @@ func (h *StoreHandler) AddToCartHandler(w http.ResponseWriter, r *http.Request) 
 
 func (h *StoreHandler) RemoveFromCartHandler(w http.ResponseWriter, r *http.Request) {
 	productID := r.URL.Query().Get("id")
+	size := r.URL.Query().Get("size")
 	cookie, _ := r.Cookie("sessao_loja")
 
-	err := h.Service.RemoveProductFromCart(cookie.Value, productID)
+	err := h.Service.RemoveProductFromCart(cookie.Value, productID, size)
 	if err != nil {
 		http.Redirect(w, r, "/cart?msg=error_remove", http.StatusSeeOther)
 		return
@@ -171,24 +173,17 @@ func (h *StoreHandler) CheckoutPageHandler(w http.ResponseWriter, r *http.Reques
 
 func (h *StoreHandler) PurchaseHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
-	// cardName := r.FormValue("card_name") // Não usado por enquanto
 	cardNumber := r.FormValue("card_number")
 	cardCVV := r.FormValue("card_cvv")
 	selectedItems := r.Form["selected_items"]
 
+	name := r.FormValue("name")
+	email := r.FormValue("email")
+	address := r.FormValue("address")
+
 	cookie, _ := r.Cookie("sessao_loja")
-	// Precisamos do email do user. O cookie tem o ID.
-	// Vamos buscar o user de novo ou confiar que o ID está certo.
-	// O Service vai buscar o user pelo ID.
-	// Mas precisamos passar o nome e email para o pedido.
-	// O Service pode pegar isso do User que ele busca.
-	// Vamos ajustar o Service para pegar nome/email do User do banco, não do form (mais seguro).
 
-	// Ajuste rápido: Passar strings vazias e deixar o Service preencher se possível,
-	// ou buscar aqui. Vamos buscar aqui pra garantir.
-	user, _, _ := h.Service.GetUserCart(cookie.Value)
-
-	err := h.Service.ProcessCartPurchase(cookie.Value, user.Name, user.Email, cardNumber, cardCVV, selectedItems)
+	err := h.Service.ProcessCartPurchase(cookie.Value, name, email, address, cardNumber, cardCVV, selectedItems)
 	if err != nil {
 		http.Error(w, "Erro na compra: "+err.Error(), 500)
 		return
@@ -273,4 +268,60 @@ func (h *StoreHandler) EditProductHandler(w http.ResponseWriter, r *http.Request
 	h.Service.EditProduct(id, name, desc, img, priceInt, stock, sizes)
 
 	http.Redirect(w, r, "/admin/dashboard", http.StatusSeeOther)
+}
+
+func (h *StoreHandler) PaymentPageHandler(w http.ResponseWriter, r *http.Request) {
+	cookie, _ := r.Cookie("sessao_loja")
+	user, _, err := h.Service.GetUserCart(cookie.Value)
+	if err != nil {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	if r.Method != http.MethodPost {
+		http.Redirect(w, r, "/cart", http.StatusSeeOther)
+		return
+	}
+
+	r.ParseForm()
+	selectedItems := r.Form["selected_items"]
+	name := r.FormValue("name")
+	email := r.FormValue("email")
+	address := r.FormValue("address")
+	city := r.FormValue("city")
+	zip := r.FormValue("zip")
+
+	fullAddress := address + ", " + city + " - " + zip
+
+	if len(selectedItems) == 0 {
+		http.Redirect(w, r, "/cart?msg=select_items", http.StatusSeeOther)
+		return
+	}
+
+	// Recalcular total dos itens selecionados
+	var total int64 = 0
+	var itemsToBuy []models.OrderItem
+
+	for _, item := range user.Cart {
+		for _, selID := range selectedItems {
+			if item.ProductID.Hex() == selID {
+				itemsToBuy = append(itemsToBuy, item)
+				total += item.Price * int64(item.Quantity)
+				break
+			}
+		}
+	}
+
+	data := map[string]any{
+		"Items":         itemsToBuy,
+		"Total":         float64(total) / 100.0,
+		"SelectedItems": selectedItems,
+		"Shipping": map[string]string{
+			"Name":    name,
+			"Email":   email,
+			"Address": fullAddress,
+		},
+	}
+
+	RenderTemplate(w, r, "payment.html", data)
 }

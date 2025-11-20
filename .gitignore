@@ -1,5 +1,23 @@
+# Binaries
+main
+*.exe
+*.test
+*.out
+
+# Directories
 .zed/
+.vscode/
+.idea/
 tmp/
-.air.toml
+vendor/
+
+# Environment variables
 .env
+
+# Tools
+.air.toml
+
+# OS specific
+.DS_Store
+Thumbs.db
 

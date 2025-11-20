@@ -54,6 +54,7 @@ func NewRouter(authH *handlers.AuthHandler, storeH *handlers.StoreHandler, authS
 		r.Get("/remove-from-cart", storeH.RemoveFromCartHandler) // <--- Nova rota
 		r.Get("/checkout", storeH.CheckoutPageHandler)
 		r.Post("/checkout", storeH.CheckoutPageHandler) // <--- Permitir POST para seleção
+		r.Post("/payment", storeH.PaymentPageHandler)   // <--- Nova rota de pagamento
 		r.Post("/purchase", storeH.PurchaseHandler)
 	})
 

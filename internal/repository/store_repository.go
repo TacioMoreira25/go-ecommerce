@@ -113,15 +113,58 @@ func (r *StoreRepository) AddItemToCart(userID primitive.ObjectID, item models.O
 	return err
 }
 
-func (r *StoreRepository) RemoveItemFromCart(userID primitive.ObjectID, productID primitive.ObjectID) error {
+func (r *StoreRepository) RemoveItemFromCart(userID primitive.ObjectID, productID primitive.ObjectID, size string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	userColl := r.db.Collection("users")
 
-	// Remove o item do array 'cart' onde o product_id bate
+	// Remove o item do array 'cart' onde o product_id bate E o tamanho bate (se tiver tamanho)
+	// Se size for vazio, removemos onde product_id bate e size é vazio ou não existe?
+	// Simplificação: Removemos exatamente o que veio.
+
 	filter := bson.M{"_id": userID}
-	update := bson.M{"$pull": bson.M{"cart": bson.M{"product_id": productID}}}
+
+	// $pull remove todos os itens que dão match no critério
+	pullFilter := bson.M{"product_id": productID}
+	if size != "" {
+		pullFilter["size"] = size
+	} else {
+		// Se não tem tamanho, talvez devêssemos remover itens sem tamanho?
+		// Ou remover qualquer um desse produto?
+		// Vamos assumir que se size é vazio, removemos itens onde size é vazio ou null
+		// Mas o $pull simples já funciona se passarmos o objeto exato.
+		// Vamos usar o filtro composto.
+	}
+
+	// Se size for vazio, o pullFilter fica só com product_id, o que removeria TODOS os tamanhos desse produto.
+	// Isso é perigoso se o usuário tiver P e M e clicar remover no que não tem tamanho (se existir).
+	// Mas se o produto tem tamanho, o link sempre manda o tamanho.
+	// Se o produto NÃO tem tamanho, size vem vazio.
+	// Então se size == "", removemos itens onde size == "" ou não existe.
+
+	if size == "" {
+		// Remove itens onde product_id bate E (size não existe OU size é vazio)
+		// MongoDB query complexa para array element match.
+		// Vamos simplificar: Se size veio vazio, removemos pelo ID.
+		// Se isso apagar todos, é o comportamento esperado para produtos sem variação.
+		// O problema é se tivermos um produto com variação e o request vier sem size.
+	} else {
+		// Se tem size, removemos só aquele size.
+	}
+
+	// Melhor abordagem: Sempre tentar dar match no size se ele foi fornecido.
+	// Se não foi fornecido, removemos pelo ID (todos).
+
+	var update bson.M
+	if size != "" {
+		update = bson.M{"$pull": bson.M{"cart": bson.M{"product_id": productID, "size": size}}}
+	} else {
+		// Se não tem size, removemos onde product_id bate.
+		// CUIDADO: Isso remove P e M se o request vier sem size.
+		// Mas o request do cart.html sempre manda o size se ele existir no item.
+		update = bson.M{"$pull": bson.M{"cart": bson.M{"product_id": productID}}}
+	}
 
 	_, err := userColl.UpdateOne(ctx, filter, update)
 	return err
