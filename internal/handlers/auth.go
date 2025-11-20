@@ -54,7 +54,7 @@ func (h *AuthHandler) LoginPostHandler(w http.ResponseWriter, r *http.Request) {
 			Path:    "/",
 			Expires: time.Now().Add(24 * time.Hour),
 		})
-		http.Redirect(w, r, "/admin", http.StatusSeeOther)
+		http.Redirect(w, r, "/admin/dashboard", http.StatusSeeOther)
 		return
 	}
 
@@ -93,8 +93,8 @@ func (h *AuthHandler) DashboardHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Struct anônima para passar dados combinados
 	data := struct {
-		User   interface{}
-		Orders interface{}
+		User   any
+		Orders any
 	}{user, orders}
 
 	RenderTemplate(w, r, "dashboard.html", data)

@@ -1,61 +1,54 @@
 {{define "content"}}
-<div class="flex items-center justify-center py-10">
-  
-  <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden max-w-5xl w-full">
+<div class="py-6">
+  <nav class="mb-6 text-sm">
+      <a href="/" class="text-gray-500 hover:text-blue-600 transition">&larr; Voltar para lista</a>
+  </nav>
+
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
     <div class="md:flex">
       
-      <div class="md:w-1/2 bg-gray-50 p-10 flex items-center justify-center border-r border-gray-100">
-        <img class="max-h-[400px] w-full object-contain mix-blend-multiply" 
-             src="{{.Data.ImageURL}}" 
-             alt="{{.Data.Name}}">
+      <div class="md:w-1/2 bg-gray-50 p-8 flex items-center justify-center border-r border-gray-100">
+        <img class="max-h-[500px] w-full object-contain" src="{{.Data.ImageURL}}" alt="{{.Data.Name}}">
       </div>
       
-      <div class="md:w-1/2 p-8 md:p-12 flex flex-col justify-center">
+      <div class="md:w-1/2 p-8 md:p-12 flex flex-col">
+        
+        <h1 class="text-3xl font-bold text-gray-900 mb-4 leading-tight">{{.Data.Name}}</h1>
         
         <div class="mb-6">
-          <a href="/" class="text-sm font-medium text-gray-400 hover:text-blue-600 transition flex items-center gap-2">
-            <span>&larr;</span> Voltar para o catálogo
-          </a>
+             <span class="text-4xl font-bold text-blue-600">{{.Data.FormattedPrice}}</span>
+        </div>
+
+        <div class="prose text-gray-600 mb-8 leading-relaxed">
+            {{.Data.Description}}
         </div>
         
-        <h1 class="text-3xl font-semibold text-gray-800 mb-4 leading-tight">{{.Data.Name}}</h1>
-        
-        <p class="text-gray-500 leading-relaxed mb-8 text-lg">
-            {{.Data.Description}}
-        </p>
-        
-        <div class="border-t border-gray-100 pt-8 mt-auto">
-          <div class="flex items-end justify-between mb-8">
-             <div>
-                 <p class="text-sm text-gray-400 uppercase tracking-wide font-semibold mb-1">Preço Atual</p>
-                 <span class="text-4xl font-bold text-gray-800">{{.Data.FormattedPrice}}</span>
-             </div>
+        <div class="mt-auto border-t border-gray-100 pt-6">
+          <div class="flex items-center justify-between mb-4">
+             <span class="text-sm font-bold text-gray-500 uppercase tracking-wide">Status</span>
              
-             <div class="text-right">
-                 <p class="text-sm text-gray-400 uppercase tracking-wide font-semibold mb-1">Disponibilidade</p>
-                 {{if gt .Data.Stock 0}}
-                    <span class="inline-block bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full font-bold">
-                        Em Estoque ({{.Data.Stock}})
-                    </span>
-                 {{else}}
-                    <span class="inline-block bg-red-100 text-red-800 text-xs px-3 py-1 rounded-full font-bold">
-                        Esgotado
-                    </span>
-                 {{end}}
-             </div>
+             {{if gt .Data.Stock 0}}
+                <span class="bg-green-100 text-green-800 text-xs font-bold px-3 py-1 rounded-full">
+                    Em Estoque ({{.Data.Stock}})
+                </span>
+             {{else}}
+                <span class="bg-red-100 text-red-800 text-xs font-bold px-3 py-1 rounded-full">
+                    Indisponível
+                </span>
+             {{end}}
           </div>
           
           {{if gt .Data.Stock 0}}
             <form action="/checkout" method="GET">
                 <input type="hidden" name="product_id" value="{{.Data.ID.Hex}}">
-                
-                <button type="submit" class="w-full bg-blue-600 text-white text-lg font-medium py-4 rounded-lg shadow-sm hover:bg-blue-700 hover:shadow-md transition duration-200 ease-in-out transform hover:-translate-y-0.5">
+                <button type="submit" class="w-full bg-blue-600 text-white font-bold text-lg py-4 rounded-lg shadow hover:bg-blue-700 transition transform active:scale-95">
                   Comprar Agora
                 </button>
             </form>
+            <p class="text-center text-xs text-gray-400 mt-3">Entrega garantida e segura.</p>
           {{else}}
-            <button disabled class="w-full bg-gray-100 text-gray-400 text-lg font-medium py-4 rounded-lg cursor-not-allowed border border-gray-200">
-              Produto Indisponível
+            <button disabled class="w-full bg-gray-200 text-gray-400 font-bold text-lg py-4 rounded-lg cursor-not-allowed">
+              Produto Esgotado
             </button>
           {{end}}
         </div>

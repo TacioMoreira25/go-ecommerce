@@ -8,50 +8,49 @@
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body class="bg-gray-50 text-gray-800 font-sans antialiased min-h-screen flex flex-col">
-      
-      <nav class="bg-white shadow-sm mb-8 sticky top-0 z-50">
-        <div class="container mx-auto max-w-5xl px-6 py-3 flex justify-between items-center">
+    
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+      <div class="container mx-auto max-w-6xl px-6 py-4 flex justify-between items-center">
+        
+        <a href="/" class="text-xl font-bold text-gray-800 hover:text-blue-600 transition flex items-center gap-2">
+          Loja Virtual
+        </a>
+        
+        <div class="flex items-center gap-6 text-sm font-medium">
           
-          <a href="/" class="flex items-center gap-2 text-xl font-bold text-gray-800 hover:text-blue-600 transition">
-            🛒 <span class="hidden sm:inline">Loja Virtual</span>
-          </a>
-          
-          <div class="flex items-center gap-3">
+          {{if .IsAdmin}}
+            <span class="text-green-600 bg-green-50 px-2 py-1 rounded border border-green-100 text-xs uppercase tracking-wide">
+                Administrador
+            </span>
+            <a href="/admin" class="text-gray-600 hover:text-blue-600">Painel</a>
+            <a href="/logout" class="text-red-600 hover:text-red-800">Sair</a>
+
+          {{else}}
+            <a href="/" class="text-gray-500 hover:text-blue-600 transition">Produtos</a>
             
-            {{if .IsAdmin}}
-              <span class="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded-full uppercase tracking-wide">
-                  Admin Logado
-              </span>
-              <a href="/admin" class="text-sm font-medium text-gray-600 hover:text-blue-600">Painel</a>
-              <a href="/logout" class="text-sm font-medium text-red-500 hover:text-red-700 border border-red-100 px-3 py-1 rounded hover:bg-red-50 transition">
-                  Sair
-              </a>
-  
-            {{else}}
-              <button class="hidden sm:flex items-center gap-2 bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-md text-sm font-medium hover:bg-gray-50 transition shadow-sm">
-                  <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-4 h-4" alt="Google">
-                  Entrar com Google
-              </button>
-  
-              <div class="h-6 w-px bg-gray-200 hidden sm:block"></div>
-  
-              <a href="/login" class="bg-blue-600 text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-blue-700 shadow-sm transition">
-                  Login
-              </a>
-            {{end}}
-  
-          </div>
+            <div class="h-4 w-px bg-gray-300"></div>
+            
+            <a href="/dashboard" class="text-gray-600 hover:text-blue-600">Minha Conta</a>
+            
+            <a href="/login" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition shadow-sm">
+                Entrar
+            </a>
+          {{end}}
+
         </div>
-      </nav>
-  
-      <main class="container mx-auto max-w-5xl px-6 flex-grow">
-        {{template "content" .}}
-      </main>
-  
-      <footer class="mt-12 py-8 text-center text-gray-400 text-sm border-t border-gray-200">
-        &copy; 2025 Sistema de Vendas.
-      </footer>
-  
-    </body>
+      </div>
+    </nav>
+
+    <main class="container mx-auto max-w-6xl px-6 py-8 flex-grow">
+      {{template "content" .}}
+    </main>
+
+    <footer class="mt-auto py-8 text-center text-gray-400 text-sm border-t border-gray-200 bg-white">
+      <div class="container mx-auto">
+        <p>&copy; 2025 Sistema de Comércio Eletrônico.</p>
+      </div>
+    </footer>
+
+  </body>
 </html>
 {{end}}

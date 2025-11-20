@@ -1,38 +1,50 @@
 {{define "content"}}
-<div class="max-w-md mx-auto">
+<div class="max-w-2xl mx-auto mt-6">
   
-  <div class="bg-white p-8 rounded-lg shadow-sm border border-gray-200">
-    <header class="mb-8 border-b border-gray-100 pb-4">
-      <h2 class="text-xl font-semibold text-gray-700">Finalizar Pedido</h2>
-    </header>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      
+      <div class="md:col-span-1">
+          <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wide mb-4">Resumo</h3>
+          <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+              <div class="aspect-square bg-gray-100 rounded overflow-hidden mb-3">
+                  <img src="{{.Data.ImageURL}}" class="w-full h-full object-cover">
+              </div>
+              <h4 class="font-bold text-gray-800 text-sm leading-tight mb-1">{{.Data.Name}}</h4>
+              <p class="text-blue-600 font-bold">{{.Data.FormattedPrice}}</p>
+          </div>
+      </div>
 
-    <div class="flex items-center gap-4 bg-gray-50 p-4 rounded mb-8 border border-gray-200">
-        <div class="w-12 h-12 bg-white rounded border border-gray-200 flex items-center justify-center overflow-hidden">
-             <img src="{{.ImageURL}}" class="object-cover">
-        </div>
-        <div>
-            <p class="text-sm font-medium text-gray-800">{{.Name}}</p>
-            <p class="text-sm text-blue-600 font-bold">{{.FormattedPrice}}</p>
-        </div>
-    </div>
+      <div class="md:col-span-2">
+        <div class="bg-white p-8 rounded-lg shadow-sm border border-gray-200">
+            <header class="mb-6 border-b border-gray-100 pb-4">
+            <h2 class="text-xl font-bold text-gray-800">Finalizar Compra</h2>
+            </header>
 
-    <form action="/purchase" method="POST" class="space-y-5">
-        <input type="hidden" name="product_id" value="{{.ID.Hex}}">
-        
-        <div>
-            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Nome Completo</label>
-            <input type="text" name="name" required class="w-full bg-white text-gray-800 border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition" placeholder="Digite seu nome">
-        </div>
+            <form action="/purchase" method="POST" class="space-y-5">
+                <input type="hidden" name="product_id" value="{{.Data.ID.Hex}}">
+                
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nome Completo</label>
+                    <input type="text" name="name" required 
+                        class="w-full bg-white border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition" 
+                        placeholder="Como prefere ser chamado?">
+                </div>
 
-        <div>
-            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Endereço de E-mail</label>
-            <input type="email" name="email" required class="w-full bg-white text-gray-800 border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition" placeholder="Digite seu e-mail">
-        </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Endereço de E-mail</label>
+                    <input type="email" name="email" required 
+                        class="w-full bg-white border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition" 
+                        placeholder="Para enviar o comprovante">
+                </div>
 
-        <button type="submit" class="w-full bg-green-600 text-white font-medium py-3 rounded hover:bg-green-700 shadow-sm transition duration-200 mt-4">
-            Confirmar Pagamento
-        </button>
-    </form>
+                <div class="pt-4">
+                    <button type="submit" class="w-full bg-green-600 text-white font-bold py-3 rounded hover:bg-green-700 shadow-sm transition duration-200 flex justify-center items-center gap-2">
+                        <span>Confirmar Pedido</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+      </div>
   </div>
 
 </div>

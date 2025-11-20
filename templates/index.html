@@ -1,28 +1,37 @@
 {{define "content"}}
-<header class="mb-10 border-b border-gray-200 pb-6">
-  <h1 class="text-3xl font-light text-gray-700 mb-2">Catálogo</h1>
-  <p class="text-gray-500">Lista de itens disponíveis</p>
+<header class="mb-8 border-b border-gray-200 pb-6 flex justify-between items-end">
+  <div>
+    <h1 class="text-3xl font-bold text-gray-800 mb-2">Catálogo</h1>
+    <p class="text-gray-500">Confira nossos produtos disponíveis.</p>
+  </div>
 </header>
 
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
   
   {{range .Data}}
-  <a href="/product/{{.ID.Hex}}" class="group bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 ease-in-out flex flex-col border border-gray-100">
+  <a href="/product/{{.ID.Hex}}" class="group bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col">
     
-    <div class="aspect-square bg-gray-50 rounded mb-4 flex items-center justify-center overflow-hidden">
-      <img src="{{.ImageURL}}" alt="{{.Name}}" class="object-cover h-full w-full group-hover:scale-105 transition-transform duration-300">
+    <div class="aspect-square bg-gray-100 overflow-hidden relative">
+      <img src="{{.ImageURL}}" alt="{{.Name}}" class="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500">
     </div>
 
-    <h2 class="text-lg font-medium text-gray-800 mb-1 group-hover:text-blue-600 transition">{{.Name}}</h2>
-    <p class="text-xl font-bold text-gray-600">{{.FormattedPrice}}</p>
-    
-    <div class="mt-4 text-sm text-blue-600 font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-      Visualizar item
+    <div class="p-5 flex flex-col flex-grow">
+        <h2 class="text-gray-800 font-medium text-lg mb-1 leading-tight group-hover:text-blue-600 transition">{{.Name}}</h2>
+        
+        <div class="mt-auto pt-4">
+            <p class="text-xl font-bold text-gray-900">{{.FormattedPrice}}</p>
+            
+            {{if gt .Stock 0}}
+                <p class="text-xs text-green-600 font-semibold mt-1">Disponível</p>
+            {{else}}
+                <p class="text-xs text-red-500 font-semibold mt-1">Esgotado</p>
+            {{end}}
+        </div>
     </div>
   </a>
   {{else}}
-    <div class="col-span-full text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
-      <p class="text-gray-400 text-lg">Nenhum registro encontrado.</p>
+    <div class="col-span-full py-12 text-center bg-white rounded border border-gray-200">
+        <p class="text-gray-400 text-lg">Nenhum produto encontrado no catálogo.</p>
     </div>
   {{end}}
 

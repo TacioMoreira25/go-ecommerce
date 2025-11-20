@@ -1,38 +1,39 @@
 {{define "content"}}
-<div class="flex items-center justify-center mt-10">
-    <div class="bg-white p-8 rounded-xl shadow-lg border border-gray-100 w-full max-w-sm">
+<div class="flex items-center justify-center min-h-[60vh]">
+    <div class="bg-white p-8 rounded-lg shadow-sm border border-gray-200 w-full max-w-sm">
         
-        <div class="text-center mb-6">
-            <h2 class="text-2xl font-bold text-gray-800">Bem-vindo</h2>
-            <p class="text-sm text-gray-500">Faça login para gerenciar a loja</p>
+        <div class="text-center mb-8">
+            <h2 class="text-2xl font-bold text-gray-800">Acessar Conta</h2>
+            <p class="text-sm text-gray-500 mt-1">Entre para gerenciar seus pedidos</p>
         </div>
 
-        <button class="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50 transition mb-4">
-            <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5">
-            Continuar com Google
-        </button>
-
-        <div class="relative flex py-2 items-center mb-4">
-            <div class="flex-grow border-t border-gray-200"></div>
-            <span class="flex-shrink-0 mx-4 text-gray-400 text-xs uppercase">Ou use sua senha</span>
-            <div class="flex-grow border-t border-gray-200"></div>
-        </div>
-
-        <form action="/do-login" method="POST" class="space-y-4">
+        <form action="/do-login" method="POST" class="space-y-5">
             <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Senha</label>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">E-mail ou Usuário</label>
+                <input type="text" name="email" required autofocus
+                       class="w-full bg-white border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
+                       placeholder="seu@email.com">
+            </div>
+
+            <div>
+                <div class="flex justify-between items-center mb-1">
+                    <label class="block text-xs font-bold text-gray-500 uppercase">Senha</label>
+                </div>
                 <input type="password" name="password" required 
-                       class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                       class="w-full bg-white border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
                        placeholder="••••••••">
             </div>
             
-            <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2.5 rounded-lg hover:bg-blue-700 transition shadow-md hover:shadow-lg">
+            <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2.5 rounded-md hover:bg-blue-700 transition shadow-sm">
                 Entrar
             </button>
         </form>
         
-        <div class="mt-6 text-center">
-            <a href="/" class="text-sm text-gray-400 hover:text-blue-600">← Voltar para a loja</a>
+        <div class="mt-6 text-center pt-6 border-t border-gray-50">
+            <p class="text-sm text-gray-500 mb-2">Ainda não tem uma conta?</p>
+            <a href="/register" class="text-blue-600 font-semibold hover:underline">
+                Criar conta agora
+            </a>
         </div>
     </div>
 </div>

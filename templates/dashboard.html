@@ -1,51 +1,69 @@
 {{define "content"}}
 <div class="max-w-5xl mx-auto">
-    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6 flex justify-between items-center">
+    
+    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8 flex flex-col sm:flex-row justify-between items-center gap-4">
         <div>
             <h1 class="text-2xl font-bold text-gray-800">Minha Conta</h1>
-            <p class="text-gray-500">Olá, <span class="font-semibold text-blue-600">{{.Data.User.Name}}</span></p>
+            <p class="text-gray-500 mt-1">
+                Olá, <span class="font-semibold text-blue-600">{{.Data.User.Name}}</span>. Aqui estão seus pedidos.
+            </p>
         </div>
-        <a href="/logout" class="text-red-600 border border-red-200 bg-red-50 px-4 py-2 rounded text-sm font-medium hover:bg-red-100">Sair</a>
+        <a href="/logout" class="text-red-600 border border-red-200 bg-red-50 px-5 py-2 rounded-md hover:bg-red-100 transition text-sm font-medium">
+            Sair da Conta
+        </a>
     </div>
 
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
-            <h3 class="font-semibold text-gray-700">Histórico de Pedidos</h3>
+        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+            <h2 class="font-semibold text-gray-700">Histórico de Pedidos</h2>
+            <span class="text-xs text-gray-400 bg-white px-2 py-1 border rounded">Atualizado agora</span>
         </div>
 
         {{if .Data.Orders}}
-        <table class="w-full text-left text-sm text-gray-600">
-            <thead class="bg-gray-50 text-xs uppercase font-medium text-gray-500">
-                <tr>
-                    <th class="px-6 py-3">Data</th>
-                    <th class="px-6 py-3">Status</th>
-                    <th class="px-6 py-3">Produto</th>
-                    <th class="px-6 py-3 text-right">Total</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-                {{range .Data.Orders}}
-                <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-4">{{.CreatedAt.Format "02/01/2006"}}</td>
-                    <td class="px-6 py-4">
-                        <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-bold">{{.Status}}</span>
-                    </td>
-                    <td class="px-6 py-4">
-                        {{range .Items}}
-                            <div>{{.Quantity}}x {{.ProductName}}</div>
-                        {{end}}
-                    </td>
-                    <td class="px-6 py-4 text-right font-bold text-gray-800">
-                       R$ {{printf "%.2f" (call (printf "%f" .Total | float64) 0.01)}} 
-                       </td>
-                </tr>
-                {{end}}
-            </tbody>
-        </table>
-        {{else}}
-        <div class="p-10 text-center text-gray-500">
-            Você ainda não fez compras. <a href="/" class="text-blue-600 hover:underline">Ir às compras</a>.
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-gray-600">
+                <thead class="bg-gray-50 text-xs uppercase font-medium text-gray-400 border-b border-gray-100">
+                    <tr>
+                        <th class="px-6 py-3">Data</th>
+                        <th class="px-6 py-3">Status</th>
+                        <th class="px-6 py-3">Resumo do Pedido</th>
+                        <th class="px-6 py-3 text-right">Valor Total</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {{range .Data.Orders}}
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {{.CreatedAt.Format "02/01/2006"}}
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                {{.Status}}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <ul class="space-y-1">
+                                {{range .Items}}
+                                <li class="text-gray-700">
+                                    <span class="font-bold text-xs text-gray-400">{{.Quantity}}x</span> {{.ProductName}}
+                                </li>
+                                {{end}}
+                            </ul>
+                        </td>
+                        <td class="px-6 py-4 text-right font-bold text-gray-900">
+                            {{.FormattedTotal}}
+                        </td>
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
         </div>
+        {{else}}
+            <div class="p-12 text-center">
+                <div class="text-gray-300 text-5xl mb-4">🛍️</div>
+                <p class="text-gray-500 text-lg mb-4">Você ainda não realizou nenhuma compra.</p>
+                <a href="/" class="text-blue-600 font-medium hover:underline">Ir para o catálogo</a>
+            </div>
         {{end}}
     </div>
 </div>
