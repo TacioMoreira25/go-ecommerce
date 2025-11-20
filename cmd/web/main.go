@@ -2,44 +2,56 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
-	"time"
+	"os"
+
+	"github.com/joho/godotenv"
 
 	"github.com/MarcosAndradeV/go-ecommerce/internal/database"
 	"github.com/MarcosAndradeV/go-ecommerce/internal/handlers"
-	"github.com/MarcosAndradeV/go-ecommerce/internal/routes"
-	"github.com/go-chi/chi/v5"
-	"github.com/joho/godotenv"
+	"github.com/MarcosAndradeV/go-ecommerce/internal/repository"
+	"github.com/MarcosAndradeV/go-ecommerce/internal/routes" // <--- Importe o novo pacote
+	"github.com/MarcosAndradeV/go-ecommerce/internal/service"
 )
 
 func main() {
-	env, err := godotenv.Read(".env")
-	if err != nil {
-		log.Println("Aviso: Arquivo .env não encontrado")
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	dbstore := database.NewMongoStore(env["DB_NAME"])
-
-	if err := dbstore.Connect(ctx, env["MONGO_URI"]); err != nil {
-		log.Println("Error: Não foi possivel connectar ao mongodb", err)
-	}
-	log.Println("Info: Connectado ao mongodb")
-
-	r := chi.NewRouter()
-	h := handlers.NewHandler(dbstore, ctx);
-	routes.SetupRoutes(r, h)
-
-	port := env["PORT"]
+	// 1. Configurações
+	godotenv.Load()
+	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
 
-	fmt.Printf("Servidor rodando em http://localhost:%s\n", port)
-	http.ListenAndServe(":"+port, r)
-	dbstore.Disconnect(ctx)
+	ctx := context.Background()
+
+	// 2. Banco de Dados
+	store := database.NewMongoStore("ecommerce_go")
+	if err := store.Connect(ctx, os.Getenv("MONGO_URI")); err != nil {
+		log.Fatal("Erro ao conectar no banco:", err)
+	}
+	defer store.Disconnect(ctx)
+
+	dbInstance := store.DB
+
+	// 3. Camada de Repositório (Injeta Banco)
+	userRepo := repository.NewUserRepository(dbInstance)
+	storeRepo := repository.NewStoreRepository(dbInstance)
+
+	// 4. Camada de Serviço (Injeta Repositórios)
+	authService := service.NewAuthService(userRepo)
+	storeService := service.NewStoreService(storeRepo)
+
+	// 5. Camada de Handlers (Injeta Serviços)
+	authHandler := handlers.NewAuthHandler(authService)
+	storeHandler := handlers.NewStoreHandler(storeService)
+
+	// 6. ROTAS (Injeta Handlers e recebe o Router pronto)
+	r := routes.NewRouter(authHandler, storeHandler)
+
+	// 7. Servidor
+	log.Println("Servidor rodando em http://localhost:" + port)
+	if err := http.ListenAndServe(":"+port, r); err != nil {
+		log.Fatal(err)
+	}
 }

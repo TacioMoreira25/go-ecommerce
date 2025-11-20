@@ -24,7 +24,7 @@ func NewMongoStore(dbName string) *MongoStore {
 // Connect connects to a MongoDB instance
 func (s *MongoStore) Connect(ctx context.Context, uri string) error {
 	clientOptions := options.Client().ApplyURI(uri)
-	client, err := mongo.Connect(context.TODO(), clientOptions)
+	client, err := mongo.Connect(context.Background(), clientOptions)
 	if err != nil {
 		return err
 	}

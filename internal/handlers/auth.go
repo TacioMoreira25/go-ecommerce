@@ -7,38 +7,47 @@ import (
 	"github.com/MarcosAndradeV/go-ecommerce/internal/service"
 )
 
-func RegisterPageHandler(w http.ResponseWriter, r *http.Request) {
+type AuthHandler struct {
+	Service *service.AuthService
+}
+
+// Construtor
+func NewAuthHandler(s *service.AuthService) *AuthHandler {
+	return &AuthHandler{Service: s}
+}
+
+// --- REGISTRO ---
+
+func (h *AuthHandler) RegisterPageHandler(w http.ResponseWriter, r *http.Request) {
 	RenderTemplate(w, r, "register.html", nil)
 }
 
-func RegisterPostHandler(w http.ResponseWriter, r *http.Request) {
+func (h *AuthHandler) RegisterPostHandler(w http.ResponseWriter, r *http.Request) {
 	name := r.FormValue("name")
 	email := r.FormValue("email")
 	password := r.FormValue("password")
 
-	// Chama o service para criar o usuário no Mongo
-	err := service.RegisterCustomer(name, email, password)
+	err := h.Service.RegisterCustomer(name, email, password)
 	if err != nil {
-		// Se der erro (ex: email duplicado), volta pro form
 		http.Redirect(w, r, "/register?error=true", http.StatusSeeOther)
 		return
 	}
 
-	// Sucesso! Vai para o login
 	http.Redirect(w, r, "/login?success=created", http.StatusSeeOther)
 }
 
-func LoginPageHandler(w http.ResponseWriter, r *http.Request) {
+// --- LOGIN (Híbrido) ---
+
+func (h *AuthHandler) LoginPageHandler(w http.ResponseWriter, r *http.Request) {
 	RenderTemplate(w, r, "login.html", nil)
 }
 
-func LoginPostHandler(w http.ResponseWriter, r *http.Request) {
+func (h *AuthHandler) LoginPostHandler(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 	password := r.FormValue("password")
 
-	// --- CAMINHO A: É O ADMIN? (Fixo) ---
+	// 1. Admin Hardcoded (Prioridade)
 	if email == "admin" && password == "admin123" {
-		// Cria cookie específico de Admin
 		http.SetCookie(w, &http.Cookie{
 			Name:    "sessao_admin",
 			Value:   "true",
@@ -49,13 +58,12 @@ func LoginPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// --- CAMINHO B: É UM CLIENTE? (Banco de Dados) ---
-	user, err := service.AuthenticateCustomer(email, password)
+	// 2. Cliente via Banco (Service)
+	user, err := h.Service.AuthenticateUser(email, password)
 	if err == nil {
-		// Sucesso! Cria cookie de Cliente com o email dele
 		http.SetCookie(w, &http.Cookie{
 			Name:    "sessao_loja",
-			Value:   user.Email, // Guardamos o email pra saber quem é
+			Value:   user.Email,
 			Path:    "/",
 			Expires: time.Now().Add(24 * time.Hour),
 		})
@@ -63,23 +71,37 @@ func LoginPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// --- CAMINHO C: SENHA ERRADA ---
+	// Falha
 	http.Redirect(w, r, "/login?error=invalid", http.StatusSeeOther)
 }
 
-func LogoutHandler(w http.ResponseWriter, r *http.Request) {
-	// Destroi o cookie de Admin
-	http.SetCookie(w, &http.Cookie{
-		Name:   "sessao_admin",
-		MaxAge: -1,
-	})
+// --- DASHBOARD / LOGOUT ---
 
-	// Destroi o cookie de Cliente
-	http.SetCookie(w, &http.Cookie{
-		Name:   "sessao_loja",
-		MaxAge: -1,
-	})
+func (h *AuthHandler) DashboardHandler(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("sessao_loja")
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
 
-	// Manda pra Home
+	// Busca dados completos
+	user, orders, err := h.Service.GetDashboardData(cookie.Value)
+	if err != nil {
+		http.Redirect(w, r, "/logout", http.StatusSeeOther)
+		return
+	}
+
+	// Struct anônima para passar dados combinados
+	data := struct {
+		User   interface{}
+		Orders interface{}
+	}{user, orders}
+
+	RenderTemplate(w, r, "dashboard.html", data)
+}
+
+func (h *AuthHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, &http.Cookie{Name: "sessao_admin", MaxAge: -1})
+	http.SetCookie(w, &http.Cookie{Name: "sessao_loja", MaxAge: -1})
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

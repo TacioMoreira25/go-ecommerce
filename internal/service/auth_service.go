@@ -8,13 +8,20 @@ import (
 	"github.com/MarcosAndradeV/go-ecommerce/internal/repository"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
+type AuthService struct {
+	Repo *repository.UserRepository
+}
+
+func NewAuthService(repo *repository.UserRepository) *AuthService {
+	return &AuthService{Repo: repo}
+}
+
 // Registra um cliente novo
-func RegisterCustomer(db *mongo.Database, name, email, password string) error {
+func (as *AuthService) RegisterCustomer(name, email, password string) error {
 	// 1. Verifica se já existe
-	existing, _ := repository.GetUserByEmail(db, email)
+	existing, _ := as.Repo.GetUserByEmail(email)
 	if existing != nil {
 		return errors.New("este e-mail já está cadastrado")
 	}
@@ -36,13 +43,13 @@ func RegisterCustomer(db *mongo.Database, name, email, password string) error {
 	}
 
 	// 4. Salva
-	return repository.CreateUser(db, user)
+	return as.Repo.CreateUser(user)
 }
 
 // Autentica o usuário (Login)
-func AuthenticateCustomer(db *mongo.Database, email, password string) (*models.User, error) {
+func (as *AuthService) AuthenticateUser(email, password string) (*models.User, error) {
 	// 1. Busca usuário
-	user, err := repository.GetUserByEmail(db, email)
+	user, err := as.Repo.GetUserByEmail(email)
 	if err != nil {
 		return nil, errors.New("usuário ou senha inválidos")
 	}
@@ -57,13 +64,13 @@ func AuthenticateCustomer(db *mongo.Database, email, password string) (*models.U
 }
 
 // Dados para o Dashboard
-func GetCustomerDashboard(db *mongo.Database, email string) (*models.User, []models.Order, error) {
-	user, err := repository.GetUserByEmail(db, email)
+func (as *AuthService) GetDashboardData(email string) (*models.User, []models.Order, error) {
+	user, err := as.Repo.GetUserByEmail(email)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	orders, err := repository.GetOrdersByEmail(db, email)
+	orders, err := as.Repo.GetOrdersByEmail(email)
 	if err != nil {
 		// Se der erro ao buscar pedidos, retorna lista vazia, mas não trava o user
 		orders = []models.Order{}

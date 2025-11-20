@@ -13,6 +13,12 @@ type UserRepository struct {
 	db *mongo.Database
 }
 
+func NewUserRepository(db *mongo.Database) *UserRepository {
+    return &UserRepository{
+        db: db,
+    }
+}
+
 // Salva um novo usuário no banco
 func (ur *UserRepository) CreateUser(user models.User) error {
 	coll := ur.db.Collection("users")

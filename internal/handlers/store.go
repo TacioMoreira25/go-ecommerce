@@ -2,92 +2,102 @@ package handlers
 
 import (
 	"net/http"
-	"time"
+	"strconv"
+	"strings"
 
-	"github.com/MarcosAndradeV/go-ecommerce/internal/models"
 	"github.com/go-chi/chi/v5"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"github.com/MarcosAndradeV/go-ecommerce/internal/service"
 )
 
-// Home: Lista produtos
-func (h *Handler) HomeHandler(w http.ResponseWriter, r *http.Request) {
-	coll := h.GetCollection("products")
-	cursor, _ := coll.Find(h.Ctx, bson.M{})
+type StoreHandler struct {
+	Service *service.StoreService
+}
 
-	var products []models.Product
-	cursor.All(h.Ctx, &products)
+// Construtor
+func NewStoreHandler(s *service.StoreService) *StoreHandler {
+	return &StoreHandler{Service: s}
+}
 
+// --- ÁREA PÚBLICA ---
+
+func (h *StoreHandler) HomeHandler(w http.ResponseWriter, r *http.Request) {
+	products, err := h.Service.GetShowcase()
+	if err != nil {
+		http.Error(w, "Erro ao carregar produtos", 500)
+		return
+	}
 	RenderTemplate(w, r, "index.html", products)
 }
 
-// Detalhe do Produto
-func (h *Handler) ProductDetailHandler(w http.ResponseWriter, r *http.Request) {
+func (h *StoreHandler) ProductDetailHandler(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
-	objID, _ := primitive.ObjectIDFromHex(idStr)
-
-	coll := h.GetCollection("products")
-	var product models.Product
-	coll.FindOne(h.Ctx, bson.M{"_id": objID}).Decode(&product)
-
+	product, err := h.Service.GetProductDetails(idStr)
+	if err != nil {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
 	RenderTemplate(w, r, "product.html", product)
 }
 
-// Página de Checkout (GET)
-func (h *Handler) CheckoutPageHandler(w http.ResponseWriter, r *http.Request) {
+func (h *StoreHandler) CheckoutPageHandler(w http.ResponseWriter, r *http.Request) {
 	idStr := r.URL.Query().Get("product_id")
-	objID, _ := primitive.ObjectIDFromHex(idStr)
-
-	coll := h.GetCollection("products")
-	var product models.Product
-	coll.FindOne(h.Ctx, bson.M{"_id": objID}).Decode(&product)
-
+	product, err := h.Service.GetProductDetails(idStr)
+	if err != nil {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
 	RenderTemplate(w, r, "checkout.html", product)
 }
 
-// Processar Compra (POST)
-func (h *Handler) PurchaseHandler(w http.ResponseWriter, r *http.Request) {
-	// 1. Dados do Form
-	productID, _ := primitive.ObjectIDFromHex(r.FormValue("product_id"))
+func (h *StoreHandler) PurchaseHandler(w http.ResponseWriter, r *http.Request) {
+	idStr := r.FormValue("product_id")
 	name := r.FormValue("name")
 	email := r.FormValue("email")
 
-	// 2. Buscar Produto Real no Banco (Segurança de Preço)
-	collProds := h.GetCollection("products")
-	var product models.Product
-	err := collProds.FindOne(h.Ctx, bson.M{"_id": productID}).Decode(&product)
-
-	if err != nil || product.Stock <= 0 {
-		http.Error(w, "Produto esgotado ou inválido", http.StatusBadRequest)
+	err := h.Service.ProcessPurchase(idStr, name, email)
+	if err != nil {
+		http.Error(w, "Erro na compra: "+err.Error(), 400)
 		return
 	}
 
-	// 3. Criar Pedido (Snapshot)
-	order := models.Order{
-		ID:            primitive.NewObjectID(),
-		CustomerName:  name,
-		CustomerEmail: email,
-		Status:        "PAGO",
-		Total:         product.Price,
-		CreatedAt:     time.Now(),
-		Items: []models.OrderItem{
-			{
-				ProductID:   product.ID,
-				ProductName: product.Name,
-				Price:       product.Price, // Copia preço atual
-				Quantity:    1,
-			},
-		},
+	RenderTemplate(w, r, "success.html", nil)
+}
+
+// --- ÁREA ADMIN (Incluída aqui pois usa StoreService) ---
+
+func (h *StoreHandler) AdminDashboardHandler(w http.ResponseWriter, r *http.Request) {
+	if !CheckAuth(r) {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
 	}
 
-	// 4. Transação (Simulada): Salvar Pedido e Baixar Estoque
-	collOrders := h.GetCollection("orders")
-	collOrders.InsertOne(h.Ctx, order)
+	// Reutiliza a lógica de listar produtos
+	products, _ := h.Service.GetShowcase()
+	RenderTemplate(w, r, "admin.html", products)
+}
 
-	collProds.UpdateOne(h.Ctx,
-		bson.M{"_id": productID},
-		bson.M{"$inc": bson.M{"stock": -1}},
-	)
+func (h *StoreHandler) AdminCreateProductHandler(w http.ResponseWriter, r *http.Request) {
+	if !CheckAuth(r) {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
 
-	RenderTemplate(w, r, "success.html", nil)
+	name := r.FormValue("name")
+	desc := r.FormValue("description")
+	img := r.FormValue("image_url")
+	stock, _ := strconv.Atoi(r.FormValue("stock"))
+
+	// Parse do preço (10.50 -> 1050)
+	priceStr := strings.ReplaceAll(r.FormValue("price"), ",", ".")
+	priceFloat, _ := strconv.ParseFloat(priceStr, 64)
+	priceInt := int64(priceFloat * 100)
+
+	// Chama Service para criar (Você precisará adicionar CreateProduct no StoreService se não tiver)
+	err := h.Service.CreateProduct(name, desc, img, priceInt, stock)
+	if err != nil {
+		http.Error(w, "Erro ao criar: "+err.Error(), 500)
+		return
+	}
+
+	http.Redirect(w, r, "/admin", http.StatusSeeOther)
 }
