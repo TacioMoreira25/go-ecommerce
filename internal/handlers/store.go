@@ -173,6 +173,9 @@ func (h *StoreHandler) CheckoutPageHandler(w http.ResponseWriter, r *http.Reques
 
 func (h *StoreHandler) PurchaseHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
+	
+	// Captura novos campos
+	paymentMethod := r.FormValue("payment_method") // "pix" ou "credit_card"
 	cardNumber := r.FormValue("card_number")
 	cardCVV := r.FormValue("card_cvv")
 	selectedItems := r.Form["selected_items"]
@@ -183,13 +186,22 @@ func (h *StoreHandler) PurchaseHandler(w http.ResponseWriter, r *http.Request) {
 
 	cookie, _ := r.Cookie("sessao_loja")
 
-	err := h.Service.ProcessCartPurchase(cookie.Value, name, email, address, cardNumber, cardCVV, selectedItems)
+	// Chama o serviço atualizado
+	pixCode, qrCodeImg, err := h.Service.ProcessCartPurchase(cookie.Value, name, email, address, paymentMethod, cardNumber, cardCVV, selectedItems)
+	
 	if err != nil {
 		http.Error(w, "Erro na compra: "+err.Error(), 500)
 		return
 	}
 
-	RenderTemplate(w, r, "success.html", nil)
+	// Prepara dados para o template de sucesso
+	data := map[string]any{
+		"PixCode":     pixCode,
+		"QRCodeImage": qrCodeImg,
+		"IsPix":       paymentMethod == "pix",
+	}
+
+	RenderTemplate(w, r, "success.html", data)
 }
 
 // --- ÁREA ADMIN ---

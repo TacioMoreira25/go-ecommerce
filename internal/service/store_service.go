@@ -63,22 +63,18 @@ func (s *StoreService) GetProductDetails(idStr string) (*models.Product, error) 
 	return s.Repo.GetProductByID(objID)
 }
 
-func (s *StoreService) ProcessCartPurchase(userIDStr, customerName, customerEmail, customerAddress, cardNum, cardCVV string, selectedItems []string) error {
+func (s *StoreService) ProcessCartPurchase(userIDStr, customerName, customerEmail, customerAddress, paymentMethod, cardNum, cardCVV string, selectedItems []string) (string, string, error) {
 	userID, _ := primitive.ObjectIDFromHex(userIDStr)
 
-	// 1. Buscar Carrinho do Usuário
+	// 1. Buscar Carrinho
 	user, err := s.Repo.GetUserWithCart(userID)
 	if err != nil {
-		return err
+		return "", "", err
 	}
 
-	// 2. Filtrar itens selecionados
+	// 2. Filtrar itens e Calcular Total
 	var itemsToBuy []models.OrderItem
 	var total int64 = 0
-
-	// Se selectedItems estiver vazio, assume tudo (ou nada, dependendo da regra. Aqui vamos assumir tudo se vazio, ou erro)
-	// Mas como o form sempre manda, se estiver vazio é pq nada foi selecionado.
-	// Vamos assumir que o handler já validou isso.
 
 	for _, item := range user.Cart {
 		shouldBuy := false
@@ -88,12 +84,10 @@ func (s *StoreService) ProcessCartPurchase(userIDStr, customerName, customerEmai
 				break
 			}
 		}
-
 		if shouldBuy {
-			// Validar Estoque (Simplificado: Verifica se tem > 0)
 			product, err := s.Repo.GetProductByID(item.ProductID)
 			if err != nil || product.Stock < item.Quantity {
-				return errors.New("produto " + item.ProductName + " sem estoque suficiente")
+				return "", "", errors.New("produto " + item.ProductName + " sem estoque")
 			}
 			itemsToBuy = append(itemsToBuy, item)
 			total += item.Price * int64(item.Quantity)
@@ -101,23 +95,35 @@ func (s *StoreService) ProcessCartPurchase(userIDStr, customerName, customerEmai
 	}
 
 	if len(itemsToBuy) == 0 {
-		return errors.New("nenhum item selecionado para compra")
+		return "", "", errors.New("nenhum item selecionado")
 	}
 
 	// 3. PROCESSAR PAGAMENTO
-	err = s.Payment.ProcessPayment(cardNum, customerName, cardCVV, total)
-	if err != nil {
-		return err
+	status := "PAGO"
+	var pixCode, qrCodeImg string
+
+	if paymentMethod == "pix" {
+		status = "AGUARDANDO_PAGAMENTO"
+		// Gera o PIX
+		code, img, err := s.Payment.GeneratePix(total)
+		if err != nil {
+			return "", "", err
+		}
+		pixCode = code
+		qrCodeImg = img
+	} else {
+		// Processa Cartão (usa o método renomeado ou antigo)
+		err = s.Payment.ProcessPaymentCard(cardNum, customerName, cardCVV, total)
+		if err != nil {
+			return "", "", err
+		}
 	}
 
 	// 4. Baixar Estoque e Remover do Carrinho
 	for _, item := range itemsToBuy {
-		// Decrementa estoque (loop pela quantidade)
-		// Otimização: Criar DecrementStockBy(id, qtd) no repo. Por enquanto loop simples.
 		for i := 0; i < item.Quantity; i++ {
 			s.Repo.DecrementStock(item.ProductID)
 		}
-		// Remove do carrinho
 		s.Repo.RemoveItemFromCart(userID, item.ProductID, item.Size)
 	}
 
@@ -127,13 +133,18 @@ func (s *StoreService) ProcessCartPurchase(userIDStr, customerName, customerEmai
 		CustomerName:    customerName,
 		CustomerEmail:   customerEmail,
 		CustomerAddress: customerAddress,
-		Status:          "PAGO",
+		Status:          status,
 		Total:           total,
 		CreatedAt:       time.Now(),
 		Items:           itemsToBuy,
 	}
 
-	return s.Repo.CreateOrder(order)
+	if err := s.Repo.CreateOrder(order); err != nil {
+		return "", "", err
+	}
+
+	// Retorna dados do PIX (se houver)
+	return pixCode, qrCodeImg, nil
 }
 
 func (s *StoreService) AddProductToCart(userIDStr, productIDStr string, quantity int, size string) error {
