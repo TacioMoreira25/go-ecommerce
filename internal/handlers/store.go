@@ -99,5 +99,5 @@ func (h *StoreHandler) AdminCreateProductHandler(w http.ResponseWriter, r *http.
 		return
 	}
 
-	http.Redirect(w, r, "/admin", http.StatusSeeOther)
+	http.Redirect(w, r, "/admin/dashboard", http.StatusSeeOther)
 }
