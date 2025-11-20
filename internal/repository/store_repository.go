@@ -58,6 +58,13 @@ func (r *StoreRepository) CreateProduct(product models.Product) error {
 	return err
 }
 
+// EditProduct
+func (r *StoreRepository) EditProduct(ID primitive.ObjectID, product models.Product) error {
+	coll := r.db.Collection("products")
+	_, err := coll.UpdateByID(context.Background(), ID, product)
+	return err
+}
+
 // DecrementStock: Baixa o estoque de forma atômica e segura
 func (r *StoreRepository) DecrementStock(id primitive.ObjectID) error {
 	coll := r.db.Collection("products")

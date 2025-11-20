@@ -48,6 +48,8 @@ func NewRouter(authH *handlers.AuthHandler, storeH *handlers.StoreHandler) *chi.
 		})
 		r.Get("/dashboard", storeH.AdminDashboardHandler)
 		r.Post("/create", storeH.AdminCreateProductHandler)
+		r.Get("/edit/product/{product_id}", storeH.EditProductFormHandler)
+		r.Post("/edit/product", storeH.EditProductHandler)
 	})
 
 	return r

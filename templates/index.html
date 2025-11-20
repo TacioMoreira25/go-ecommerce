@@ -7,20 +7,20 @@
 </header>
 
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-  
+
   {{range .Data}}
   <a href="/product/{{.ID.Hex}}" class="group bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col">
-    
+
     <div class="aspect-square bg-gray-100 overflow-hidden relative">
       <img src="{{.ImageURL}}" alt="{{.Name}}" class="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500">
     </div>
 
     <div class="p-5 flex flex-col flex-grow">
         <h2 class="text-gray-800 font-medium text-lg mb-1 leading-tight group-hover:text-blue-600 transition">{{.Name}}</h2>
-        
+
         <div class="mt-auto pt-4">
             <p class="text-xl font-bold text-gray-900">{{.FormattedPrice}}</p>
-            
+
             {{if gt .Stock 0}}
                 <p class="text-xs text-green-600 font-semibold mt-1">Disponível</p>
             {{else}}

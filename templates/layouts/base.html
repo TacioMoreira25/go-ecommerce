@@ -4,35 +4,45 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Loja Virtual</title>
+    <title>Olecram Commerce</title>
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body class="bg-gray-50 text-gray-800 font-sans antialiased min-h-screen flex flex-col">
-    
+
     <nav class="bg-white shadow-sm sticky top-0 z-50">
       <div class="container mx-auto max-w-6xl px-6 py-4 flex justify-between items-center">
-        
-        <a href="/" class="text-xl font-bold text-gray-800 hover:text-blue-600 transition flex items-center gap-2">
-          Loja Virtual
-        </a>
-        
+
+        {{if .IsLoggedIn}}
+          <span class="flex items-center gap-1 select-none cursor-default">
+              <span class="text-xl font-black text-blue-700 tracking-wide">OLECRAM</span>
+              <span class="text-xl font-light text-gray-600 tracking-widest">COMMERCE</span>
+          </span>
+        {{else}}
+          <a href="/" class="flex items-center gap-1 hover:opacity-80 transition">
+              <span class="text-xl font-black text-blue-700 tracking-wide">OLECRAM</span>
+              <span class="text-xl font-light text-gray-600 tracking-widest">COMMERCE</span>
+          </a>
+        {{end}}
+
         <div class="flex items-center gap-6 text-sm font-medium">
-          
-          {{if .IsAdmin}}
-            <span class="text-green-600 bg-green-50 px-2 py-1 rounded border border-green-100 text-xs uppercase tracking-wide">
-                Administrador
-            </span>
-            <a href="/admin" class="text-gray-600 hover:text-blue-600">Painel</a>
-            <a href="/logout" class="text-red-600 hover:text-red-800">Sair</a>
+
+          {{if .IsLoggedIn}}
+            <a href="/" class="text-gray-500 hover:text-blue-600 transition">Produtos</a>
+
+            <div class="h-4 w-px bg-gray-300"></div>
+
+            {{if .IsAdmin}}
+                <a href="/admin" class="text-green-600 font-bold hover:text-green-800">Painel Admin</a>
+            {{else}}
+                <a href="/dashboard" class="text-gray-600 hover:text-blue-600">Minha Conta</a>
+            {{end}}
+
+            <a href="/logout" class="text-red-600 hover:text-red-800 border border-red-100 bg-red-50 px-3 py-1 rounded transition">
+                Sair
+            </a>
 
           {{else}}
-            <a href="/" class="text-gray-500 hover:text-blue-600 transition">Produtos</a>
-            
-            <div class="h-4 w-px bg-gray-300"></div>
-            
-            <a href="/dashboard" class="text-gray-600 hover:text-blue-600">Minha Conta</a>
-            
-            <a href="/login" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition shadow-sm">
+            <a href="/login" class="bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 transition shadow-sm font-bold">
                 Entrar
             </a>
           {{end}}
@@ -47,7 +57,7 @@
 
     <footer class="mt-auto py-8 text-center text-gray-400 text-sm border-t border-gray-200 bg-white">
       <div class="container mx-auto">
-        <p>&copy; 2025 Sistema de Comércio Eletrônico.</p>
+        <p>&copy; 2025 <span class="font-bold text-gray-600">Olecram</span>Commerce.</p>
       </div>
     </footer>
 

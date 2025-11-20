@@ -5,8 +5,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/MarcosAndradeV/go-ecommerce/internal/service"
+	"github.com/go-chi/chi/v5"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type StoreHandler struct {
@@ -27,6 +28,55 @@ func (h *StoreHandler) HomeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	RenderTemplate(w, r, "index.html", products)
+}
+
+func (h *StoreHandler) EditProductFormHandler(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "product_id")
+
+	if !CheckAuth(r) {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+	product, err := h.Service.GetProductDetails(idStr)
+	if err != nil {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+	RenderTemplate(w, r, "edit.html", product)
+}
+
+func (h *StoreHandler) EditProductHandler(w http.ResponseWriter, r *http.Request) {
+	if !CheckAuth(r) {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	name := r.FormValue("name")
+	desc := r.FormValue("description")
+	img := r.FormValue("image_url")
+	idStr := r.FormValue("id")
+	stock, _ := strconv.Atoi(r.FormValue("stock"))
+
+	// Parse do preço (10.50 -> 1050)
+	priceStr := strings.ReplaceAll(r.FormValue("price"), ",", ".")
+	priceFloat, _ := strconv.ParseFloat(priceStr, 64)
+	priceInt := int64(priceFloat * 100)
+
+	// Chama Service para criar (Você precisará adicionar CreateProduct no StoreService se não tiver)
+	id, err := primitive.ObjectIDFromHex(idStr)
+	if err != nil {
+		http.Error(w, "Erro ao criar: "+err.Error(), 500)
+		return
+	}
+	err = h.Service.EditProduct(id,
+		name, desc, img, priceInt, stock,
+	)
+	if err != nil {
+		http.Error(w, "Erro ao criar: "+err.Error(), 500)
+		return
+	}
+
+	http.Redirect(w, r, "/admin/dashboard", http.StatusSeeOther)
 }
 
 func (h *StoreHandler) ProductDetailHandler(w http.ResponseWriter, r *http.Request) {
@@ -54,9 +104,17 @@ func (h *StoreHandler) PurchaseHandler(w http.ResponseWriter, r *http.Request) {
 	name := r.FormValue("name")
 	email := r.FormValue("email")
 
-	err := h.Service.ProcessPurchase(idStr, name, email)
+	// Novos campos do formulário
+	cardNum := r.FormValue("card_number")
+	cardCVV := r.FormValue("card_cvv")
+
+	// Passamos tudo para o serviço
+	err := h.Service.ProcessPurchase(idStr, name, email, cardNum, cardCVV)
+
 	if err != nil {
-		http.Error(w, "Erro na compra: "+err.Error(), 400)
+		// Se der erro (ex: cartão recusado), voltamos para o checkout com erro
+		// Idealmente passariamos a mensagem de erro para o template
+		http.Error(w, "Falha na compra: "+err.Error(), 400)
 		return
 	}
 

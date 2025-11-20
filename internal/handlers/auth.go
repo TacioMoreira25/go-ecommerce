@@ -67,7 +67,7 @@ func (h *AuthHandler) LoginPostHandler(w http.ResponseWriter, r *http.Request) {
 			Path:    "/",
 			Expires: time.Now().Add(24 * time.Hour),
 		})
-		http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 

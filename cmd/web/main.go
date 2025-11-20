@@ -40,7 +40,8 @@ func main() {
 
 	// 4. Camada de Serviço (Injeta Repositórios)
 	authService := service.NewAuthService(userRepo)
-	storeService := service.NewStoreService(storeRepo)
+	paymentService := service.NewPaymentService()
+	storeService := service.NewStoreService(storeRepo, paymentService)
 
 	// 5. Camada de Handlers (Injeta Serviços)
 	authHandler := handlers.NewAuthHandler(authService)
