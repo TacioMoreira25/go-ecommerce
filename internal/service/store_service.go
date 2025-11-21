@@ -218,3 +218,11 @@ func (s *StoreService) GetUserCart(userIDStr string) (*models.User, float64, err
 	// Retorna total formatado (float64 para o template)
 	return user, float64(total) / 100.0, nil
 }
+
+func (s *StoreService) DeleteProduct(idStr string) error {
+	objID, err := primitive.ObjectIDFromHex(idStr)
+	if err != nil {
+		return err
+	}
+	return s.Repo.DeleteProduct(objID)
+}

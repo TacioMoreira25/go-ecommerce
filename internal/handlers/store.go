@@ -370,3 +370,24 @@ func (h *StoreHandler) PaymentPageHandler(w http.ResponseWriter, r *http.Request
 
 	RenderTemplate(w, r, "payment.html", data)
 }
+
+func (h *StoreHandler) AdminDeleteProductHandler(w http.ResponseWriter, r *http.Request) {
+	// 1. Segurança: Verifica se é Admin
+	if !CheckAuth(r) {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	// 2. Pega o ID da URL
+	idStr := chi.URLParam(r, "id")
+
+	// 3. Chama o serviço para deletar
+	err := h.Service.DeleteProduct(idStr)
+	if err != nil {
+		http.Error(w, "Erro ao deletar produto: "+err.Error(), 500)
+		return
+	}
+
+	// 4. Redireciona de volta para o Dashboard
+	http.Redirect(w, r, "/admin/dashboard", http.StatusSeeOther)
+}
