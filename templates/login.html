@@ -8,6 +8,12 @@
       <p class="text-sm text-gray-500 mt-1">Entre para gerir os seus pedidos</p>
     </div>
 
+    {{if .Data.Error}}
+    <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+      <p class="text-red-600 font-semibold text-sm">{{.Data.Error}}</p>
+    </div>
+    {{end}}
+
     <form action="/do-login" method="POST" class="space-y-5">
       <input type="hidden" name="next" value="{{.Data.Next}}" />
       <div>
@@ -19,6 +25,7 @@
           name="email"
           required
           autofocus
+          value="{{.Data.Email}}"
           class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition placeholder-gray-400"
           placeholder="seu@email.com"
         />

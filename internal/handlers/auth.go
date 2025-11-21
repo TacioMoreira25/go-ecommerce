@@ -44,12 +44,13 @@ func (h *AuthHandler) LoginPostHandler(w http.ResponseWriter, r *http.Request) {
 	// 2. Cliente
 	user, err := h.Service.AuthenticateUser(email, password)
 	if err != nil {
-		// Se falhar, mantém o next na URL para tentar de novo
-		redirectURL := "/login?error=invalid"
-		if next != "" {
-			redirectURL += "&next=" + next
+		// Se falhar, mostra o formulário novamente com mensagem de erro
+		data := map[string]any{
+			"Next":  next,
+			"Error": "E-mail ou senha incorretos",
+			"Email": email,
 		}
-		http.Redirect(w, r, redirectURL, http.StatusSeeOther)
+		RenderTemplate(w, r, "login.html", data)
 		return
 	}
 
@@ -57,7 +58,7 @@ func (h *AuthHandler) LoginPostHandler(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     "sessao_loja",
 		Value:    user.ID.Hex(),
-		Path:     "/",                     // <--- ISSO CONSERTA O LOOP DE LOGIN
+		Path:     "/", // <--- ISSO CONSERTA O LOOP DE LOGIN
 		Expires:  time.Now().Add(24 * time.Hour),
 		HttpOnly: true,
 	})
