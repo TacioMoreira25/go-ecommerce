@@ -1,11 +1,9 @@
 package service
 
 import (
-	"encoding/base64"
 	// "errors"
 	// "strings"
 
-	"github.com/skip2/go-qrcode"
 )
 
 type PaymentService struct{}
@@ -32,14 +30,7 @@ func (s *PaymentService) GeneratePix(amount int64) (string, string, error) {
 	// Num cenário real, isso viria da API do Banco (PSP)
 	pixPayload := "00020126330014BR.GOV.BCB.PIX011112345678900520400005303986540510.005802BR5913Olecram Shop6008Sao Paulo62070503***6304B6CD"
 
-	// 2. Gerar a imagem do QR Code (256x256)
-	png, err := qrcode.Encode(pixPayload, qrcode.Medium, 256)
-	if err != nil {
-		return "", "", err
-	}
+	imagePath := "/static/pix-qrcode.png"
 
-	// 3. Converter para Base64 para exibir no HTML
-	base64Img := "data:image/png;base64," + base64.StdEncoding.EncodeToString(png)
-
-	return pixPayload, base64Img, nil
+	return pixPayload, imagePath, nil
 }
