@@ -1,90 +1,105 @@
 {{define "content"}}
 <div class="flex items-center justify-center min-h-[60vh]">
-    <div
-        class="bg-white p-10 rounded-xl shadow-sm border border-gray-200 text-center max-w-md w-full"
-    >
+    <div class="bg-white p-10 rounded-xl shadow-sm border border-gray-200 text-center max-w-md w-full">
+
         {{if .Data.IsPix}}
-        <div class="mt-6 pt-6 border-t border-gray-100">
-            <p class="text-xs font-bold text-blue-500 uppercase mb-2">
-                Ambiente de Demonstração
-            </p>
-            <form
-                action="/purchase/simulate/{{.Data.Order.ID.Hex}}"
-                method="POST"
-            >
-                <button
-                    type="submit"
-                    class="w-full bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold py-3 rounded-lg transition flex items-center justify-center gap-2"
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M13 10V3L4 14h7v7l9-11h-7z"
-                        />
+            <div class="mt-2 border-b border-gray-100 pb-6">
+                <div class="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
                     </svg>
-                    Simular Pagamento no App
-                </button>
-            </form>
-            <p class="text-xs text-gray-400 mt-2">
-                Clique para simular o callback do banco.
-            </p>
-        </div>
+                </div>
+                <h2 class="text-xl font-bold text-gray-800 mb-2">Pagamento via PIX</h2>
+                <p class="text-gray-500 mb-6 text-sm">Escaneie o QR Code abaixo para finalizar.</p>
+                
+                <div class="flex justify-center mb-6">
+                    <img src="{{.Data.QRCodeImage}}" alt="QR Code PIX" class="w-48 h-48 border border-gray-200 rounded-lg shadow-sm">
+                </div>
+
+                <div class="bg-gray-50 p-3 rounded border border-gray-200 mb-4 text-left">
+                    <p class="text-xs font-bold text-gray-400 uppercase mb-1">Copia e Cola</p>
+                    <code class="text-xs text-gray-600 break-all block font-mono select-all bg-white p-2 rounded border border-gray-100">
+                        {{.Data.PaymentCode}}
+                    </code>
+                </div>
+            </div>
+
+            <div class="mt-6">
+                <p class="text-xs font-bold text-blue-500 uppercase mb-2">
+                    Ambiente de Demonstração
+                </p>
+                <form action="/purchase/simulate/{{.Data.Order.ID.Hex}}" method="POST">
+                    <button
+                        type="submit"
+                        class="w-full bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold py-3 rounded-lg transition flex items-center justify-center gap-2"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        Simular Pagamento no App
+                    </button>
+                </form>
+                <p class="text-xs text-gray-400 mt-2">
+                    Clique para simular o callback do banco.
+                </p>
+            </div>
+
+        {{else if .Data.IsBoleto}}
+            <div class="mt-6 border-t border-gray-100 pt-6">
+                <div class="w-16 h-16 bg-yellow-50 text-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                </div>
+                <h2 class="text-xl font-bold text-gray-800 mb-2">Boleto Gerado</h2>
+                <p class="text-gray-500 mb-4 text-sm">Utilize a linha digitável para pagar.</p>
+
+                <div class="bg-gray-50 p-4 rounded border border-gray-200 mb-6">
+                    <p class="text-xs font-bold text-gray-400 uppercase mb-2">Linha Digitável</p>
+                    <code class="text-sm text-gray-800 font-mono tracking-wide break-all select-all bg-white p-2 block rounded border">
+                        {{.Data.PaymentCode}}
+                    </code>
+                </div>
+
+                <div class="mt-6">
+                    <p class="text-xs font-bold text-blue-500 uppercase mb-2">
+                        Ambiente de Demonstração
+                    </p>
+                    <form action="/purchase/simulate/{{.Data.Order.ID.Hex}}" method="POST">
+                        <button type="submit" class="w-full bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold py-3 rounded-lg transition flex items-center justify-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Simular Compensação
+                        </button>
+                    </form>
+                </div>
+            </div>
 
         {{else}}
-        <div class="mt-6 pt-6 border-t border-gray-100">
-            <p class="text-sm font-semibold text-green-600 mb-2">
-                Pagamento aprovado!
-            </p>
+            <div class="mt-6 pt-6 border-t border-gray-100">
+                <div class="w-16 h-16 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
 
-            <div class="flex flex-col items-center gap-4">
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-12 w-12 text-green-500"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M5 13l4 4L19 7"
-                    />
-                </svg>
-
-                <p class="text-gray-600 text-sm">
-                    Sua compra foi processada com sucesso usando
-                    <strong>cartão de crédito</strong>.
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">Pagamento Aprovado!</h1>
+                <p class="text-gray-600 text-sm mb-6">
+                    Sua compra foi processada com sucesso via Cartão de Crédito.
                 </p>
 
-                <div
-                    class="bg-gray-50 p-4 rounded-lg border border-gray-200 text-left w-full"
-                >
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 text-left w-full mb-6">
                     <p class="text-sm text-gray-700">
                         <strong>Número do Pedido:</strong>
                         {{.Data.Order.ID.Hex}}
                     </p>
-                    <p class="text-sm text-gray-700 mt-1">
-                        Você receberá um e-mail com os detalhes da compra.
-                    </p>
                 </div>
 
-                <a
-                    href="/dashboard"
-                    class="mt-4 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition"
-                >
+                <a href="/dashboard" class="block w-full bg-gray-900 text-white font-bold py-3 rounded-lg hover:bg-black transition">
                     Ver Pedido no Dashboard
                 </a>
             </div>
-        </div>
         {{end}}
     </div>
 </div>
