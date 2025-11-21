@@ -83,6 +83,62 @@
         <p>&copy; 2025 Olecram Commerce. Todos os direitos reservados.</p>
       </div>
     </footer>
+
+    <!-- Modal de Confirmação Customizado -->
+    <div id="confirmModal" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center">
+      <div class="bg-white rounded-lg shadow-2xl max-w-md w-full mx-4 animate-in">
+        <div class="bg-gray-50 border-b border-gray-200 px-6 py-4">
+          <h3 class="text-lg font-bold text-gray-800">Olecram Commerce</h3>
+        </div>
+        <div class="px-6 py-4">
+          <p id="confirmMessage" class="text-gray-600"></p>
+        </div>
+        <div class="bg-gray-50 border-t border-gray-200 px-6 py-4 flex justify-end gap-3">
+          <button
+            id="cancelBtn"
+            class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium px-4 py-2 rounded-lg transition"
+          >
+            Cancelar
+          </button>
+          <button
+            id="confirmBtn"
+            class="bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2 rounded-lg transition"
+          >
+            Excluir
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Sistema de confirmação customizado
+      let confirmCallback = null;
+
+      function showConfirm(message, callback) {
+        confirmCallback = callback;
+        document.getElementById('confirmMessage').textContent = message;
+        document.getElementById('confirmModal').classList.remove('hidden');
+      }
+
+      function hideConfirm() {
+        document.getElementById('confirmModal').classList.add('hidden');
+        confirmCallback = null;
+      }
+
+      document.getElementById('confirmBtn').addEventListener('click', () => {
+        if (confirmCallback) confirmCallback(true);
+        hideConfirm();
+      });
+
+      document.getElementById('cancelBtn').addEventListener('click', () => {
+        hideConfirm();
+      });
+
+      // Fechar ao clicar fora do modal
+      document.getElementById('confirmModal').addEventListener('click', (e) => {
+        if (e.target.id === 'confirmModal') hideConfirm();
+      });
+    </script>
   </body>
 </html>
 {{end}}
