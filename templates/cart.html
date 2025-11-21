@@ -33,9 +33,16 @@
 
             <div class="flex-grow">
               <h3 class="text-lg font-bold text-gray-800">{{.ProductName}}</h3>
-              <p class="text-sm text-gray-500">Quantidade: {{.Quantity}}</p>
+              <div class="flex items-center gap-2 mt-2">
+                <span class="text-sm text-gray-500">Quantidade:</span>
+                <div class="flex items-center border border-gray-300 rounded">
+                  <button type="button" class="px-2 py-1 text-gray-600 hover:bg-gray-100 transition" onclick="decreaseQuantity(this)">−</button>
+                  <input type="number" name="quantity" value="{{.Quantity}}" min="1" class="w-12 text-center border-0 border-l border-r border-gray-300 text-sm quantity-input" data-product-id="{{.ProductID.Hex}}" data-size="{{.Size}}" />
+                  <button type="button" class="px-2 py-1 text-gray-600 hover:bg-gray-100 transition" onclick="increaseQuantity(this)">+</button>
+                </div>
+              </div>
               {{if .Size}}
-              <p class="text-sm text-gray-500">Tamanho: {{.Size}}</p>
+              <p class="text-sm text-gray-500 mt-2">Tamanho: {{.Size}}</p>
               {{end}}
             </div>
 
@@ -76,6 +83,46 @@
   </form>
 
   <script>
+    function increaseQuantity(button) {
+      const input = button.parentElement.querySelector('.quantity-input');
+      input.value = parseInt(input.value) + 1;
+      updateCartItem(input);
+    }
+
+    function decreaseQuantity(button) {
+      const input = button.parentElement.querySelector('.quantity-input');
+      if (parseInt(input.value) > 1) {
+        input.value = parseInt(input.value) - 1;
+        updateCartItem(input);
+      }
+    }
+
+    function updateCartItem(input) {
+      const productId = input.getAttribute('data-product-id');
+      const size = input.getAttribute('data-size');
+      const quantity = input.value;
+
+      fetch(`/update-cart`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          product_id: productId,
+          quantity: parseInt(quantity),
+          size: size
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          updateTotal();
+          location.reload();
+        }
+      })
+      .catch(error => console.error('Erro:', error));
+    }
+
     function updateTotal() {
       const checkboxes = document.querySelectorAll('.item-checkbox');
       let totalCents = 0;

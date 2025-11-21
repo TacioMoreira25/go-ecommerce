@@ -9,7 +9,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-
 type StoreService struct {
 	Repo    *repository.StoreRepository
 	Payment *PaymentService
@@ -70,7 +69,7 @@ func (s *StoreService) GetProductDetails(idStr string) (*models.Product, error) 
 	return s.Repo.GetProductByID(objID)
 }
 
-	func (s *StoreService) ProcessCartPurchase(userIDStr, customerName, customerEmail, customerAddress, paymentMethod, cardNum, cardCVV string, selectedItems []string) (*models.Order, string, string, error) {
+func (s *StoreService) ProcessCartPurchase(userIDStr, customerName, customerEmail, customerAddress, paymentMethod, cardNum, cardCVV string, selectedItems []string) (*models.Order, string, string, error) {
 	userID, _ := primitive.ObjectIDFromHex(userIDStr)
 
 	// 1. Buscar Carrinho
@@ -199,6 +198,17 @@ func (s *StoreService) RemoveProductFromCart(userIDStr, productIDStr, size strin
 	productID, _ := primitive.ObjectIDFromHex(productIDStr)
 
 	return s.Repo.RemoveItemFromCart(userID, productID, size)
+}
+
+func (s *StoreService) UpdateCartItemQuantity(userIDStr, productIDStr string, quantity int, size string) error {
+	if quantity <= 0 {
+		return errors.New("quantidade deve ser maior que zero")
+	}
+
+	userID, _ := primitive.ObjectIDFromHex(userIDStr)
+	productID, _ := primitive.ObjectIDFromHex(productIDStr)
+
+	return s.Repo.UpdateCartItemQuantity(userID, productID, quantity, size)
 }
 
 func (s *StoreService) GetUserCart(userIDStr string) (*models.User, float64, error) {
