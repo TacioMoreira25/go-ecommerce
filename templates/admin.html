@@ -140,25 +140,30 @@
               {{end}}
             </td>
             <td class="px-6 py-4 text-right">
-              <a
-                href="/admin/edit/product/{{.ID.Hex}}"
-                class="text-blue-600 hover:text-blue-800 font-medium text-xs bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded transition"
-              >
-                Editar
-              </a>
+                <div class="flex justify-end items-center gap-2">
+                    
+                    <a
+                        href="/admin/edit/product/{{.ID.Hex}}"
+                        class="text-blue-600 hover:text-blue-800 font-medium text-xs bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded transition"
+                    >
+                        Editar
+                    </a>
 
-              <form 
-                  action="/admin/delete/product/{{.ID.Hex}}" 
-                  method="POST" 
-                  onsubmit="return confirm('Tem certeza que deseja excluir o produto {{.Name}}?');"
-              >
-                  <button 
-                      type="submit" 
-                      class="text-red-600 hover:text-red-800 font-medium text-xs bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded transition"
-                  >
-                      Excluir
-                  </button>
-              </form> 
+                    <form 
+                        action="/admin/delete/product/{{.ID.Hex}}" 
+                        method="POST" 
+                        onsubmit="return confirm('Tem certeza que deseja excluir o produto {{.Name}}?');"
+                        class="inline-block"
+                    >
+                        <button 
+                            type="submit" 
+                            class="text-red-600 hover:text-red-800 font-medium text-xs bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded transition"
+                        >
+                            Excluir
+                        </button>
+                    </form>
+                    
+                </div>
             </td>
           </tr>
           {{end}}
