@@ -7,7 +7,7 @@
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
     {{ range .Data.Products }}
     <div
-      class="bg-white rounded-xl shadow-sm hover:shadow-md transition duration-200 overflow-hidden border border-gray-100 flex flex-col h-full"
+      class="bg-white rounded-xl shadow-sm hover:shadow-md transition duration-200 overflow-hidden border border-gray-100 flex flex-col h-full {{ if eq .Stock 0 }}opacity-75{{ end }}"
     >
       <a
         href="/product/{{.ID.Hex}}"
@@ -16,8 +16,13 @@
         <img
           src="{{.ImageURL}}"
           alt="{{.Name}}"
-          class="w-full h-full object-cover transform group-hover:scale-105 transition duration-500"
+          class="w-full h-full object-cover transform group-hover:scale-105 transition duration-500 {{ if eq .Stock 0 }}grayscale{{ end }}"
         />
+        {{ if eq .Stock 0 }}
+        <div class="absolute inset-0 bg-black/20 flex items-center justify-center">
+          <span class="bg-red-600 text-white font-bold px-4 py-2 rounded-lg text-sm">Fora de Estoque</span>
+        </div>
+        {{ end }}
       </a>
 
       <div class="p-5 flex flex-col flex-grow">

@@ -3,13 +3,20 @@
   class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden max-w-5xl mx-auto"
 >
   <div class="flex flex-col md:flex-row">
-    <div class="md:w-1/2 bg-gray-100 relative min-h-[400px]">
+    <div class="md:w-1/2 bg-gray-100 relative min-h-[400px] {{ if eq .Data.Product.Stock 0 }}opacity-75{{ end }}">
       {{if .Data.Product.ImageURL}}
       <img
         src="{{.Data.Product.ImageURL}}"
         alt="{{.Data.Product.Name}}"
-        class="absolute inset-0 w-full h-full object-cover"
+        class="absolute inset-0 w-full h-full object-cover {{ if eq .Data.Product.Stock 0 }}grayscale{{ end }}"
       />
+      {{ if eq .Data.Product.Stock 0 }}
+      <div class="absolute inset-0 bg-black/30 flex items-center justify-center">
+        <div class="text-center">
+          <span class="bg-red-600 text-white font-bold px-6 py-3 rounded-lg text-lg">Fora de Estoque</span>
+        </div>
+      </div>
+      {{ end }}
       {{else}}
       <div
         class="absolute inset-0 flex items-center justify-center text-gray-400"
@@ -42,6 +49,13 @@
           >
         </div>
 
+        {{ if eq .Data.Product.Stock 0 }}
+        <div
+          class="bg-red-50 border border-red-200 text-red-800 p-4 rounded-lg text-center font-medium"
+        >
+          Este produto está fora de estoque no momento
+        </div>
+        {{ else }}
         <form action="/add-to-cart" method="GET" class="space-y-4">
           <input type="hidden" name="id" value="{{.Data.Product.ID.Hex}}" />
 
@@ -99,6 +113,7 @@
           </button>
           {{ end }} {{ end }}
         </form>
+        {{ end }}
       </div>
     </div>
   </div>
