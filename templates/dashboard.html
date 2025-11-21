@@ -30,6 +30,13 @@
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
             <h2 class="font-semibold text-gray-700">Histórico de Pedidos</h2>
+            <div class="flex items-center gap-2">
+                <label for="sort-orders" class="text-sm text-gray-600 font-medium">Ordenar por:</label>
+                <select id="sort-orders" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="recent">Mais Recentes</option>
+                    <option value="oldest">Mais Antigos</option>
+                </select>
+            </div>
         </div>
 
         {{if .Data.Orders}}
@@ -37,7 +44,7 @@
             <table class="w-full text-left text-sm text-gray-600">
                 <thead class="bg-gray-50 text-xs uppercase font-medium text-gray-500 border-b border-gray-100">
                     <tr>
-                        <th class="px-6 py-3">Data</th>
+                        <th class="px-6 py-3">Data e Hora</th>
                         <th class="px-6 py-3">Estado</th>
                         <th class="px-6 py-3">Resumo</th>
                         <th class="px-6 py-3 text-right">Total</th>
@@ -47,7 +54,8 @@
                     {{range .Data.Orders}}
                     <tr class="hover:bg-gray-50 transition">
                         <td class="px-6 py-4 whitespace-nowrap">
-                            {{.CreatedAt.Format "02/01/2006"}}
+                            <div class="text-gray-900 font-medium">{{.CreatedAt.Format "02/01/2006"}}</div>
+                            <div class="text-gray-500 text-xs">{{.CreatedAt.Format "15:04:05"}}</div>
                         </td>
                         <td class="px-6 py-4">
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
@@ -79,4 +87,52 @@
         {{end}}
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const sortSelect = document.getElementById('sort-orders');
+    const tableBody = document.querySelector('tbody');
+
+    if (sortSelect && tableBody) {
+        sortSelect.addEventListener('change', function() {
+            const rows = Array.from(tableBody.querySelectorAll('tr'));
+            
+            rows.sort((a, b) => {
+                // Extrai a data e hora do primeiro <td>
+                const cellA = a.querySelector('td');
+                const cellB = b.querySelector('td');
+                
+                // Pega o texto da data (primeira div) e da hora (segunda div)
+                const dateTextA = cellA.querySelector('div:first-child').textContent.trim();
+                const timeTextA = cellA.querySelector('div:last-child').textContent.trim();
+                const dateTimeA = dateTextA + ' ' + timeTextA;
+                
+                const dateTextB = cellB.querySelector('div:first-child').textContent.trim();
+                const timeTextB = cellB.querySelector('div:last-child').textContent.trim();
+                const dateTimeB = dateTextB + ' ' + timeTextB;
+                
+                // Converte para Date (formato DD/MM/YYYY HH:MM:SS)
+                const partsA = dateTimeA.split(' ');
+                const datePartsA = partsA[0].split('/');
+                const dateA = new Date(datePartsA[2], datePartsA[1] - 1, datePartsA[0], 
+                                      partsA[1].split(':')[0], partsA[1].split(':')[1], partsA[1].split(':')[2]);
+                
+                const partsB = dateTimeB.split(' ');
+                const datePartsB = partsB[0].split('/');
+                const dateB = new Date(datePartsB[2], datePartsB[1] - 1, datePartsB[0],
+                                      partsB[1].split(':')[0], partsB[1].split(':')[1], partsB[1].split(':')[2]);
+                
+                if (this.value === 'recent') {
+                    return dateB - dateA; // Mais recentes primeiro
+                } else {
+                    return dateA - dateB; // Mais antigos primeiro
+                }
+            });
+
+            // Remove todas as linhas e adiciona novamente em ordem
+            rows.forEach(row => tableBody.appendChild(row));
+        });
+    }
+});
+</script>
 {{end}}

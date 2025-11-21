@@ -8,6 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type UserRepository struct {
@@ -15,9 +16,9 @@ type UserRepository struct {
 }
 
 func NewUserRepository(db *mongo.Database) *UserRepository {
-    return &UserRepository{
-        db: db,
-    }
+	return &UserRepository{
+		db: db,
+	}
 }
 
 // Salva um novo usuário no banco
@@ -58,11 +59,13 @@ func (ur *UserRepository) GetUserByID(id primitive.ObjectID) (*models.User, erro
 }
 
 // Busca todos os pedidos de um email específico (Para o Dashboard)
-func (ur *UserRepository) GetOrdersByEmail( email string) ([]models.Order, error) {
+func (ur *UserRepository) GetOrdersByEmail(email string) ([]models.Order, error) {
 	coll := ur.db.Collection("orders")
 
 	// Filtra onde customer_email é igual ao email do usuário
-	cursor, err := coll.Find(context.Background(), bson.M{"customer_email": email})
+	// Ordena por data decrescente (mais recentes primeiro)
+	opts := options.Find().SetSort(bson.M{"created_at": -1})
+	cursor, err := coll.Find(context.Background(), bson.M{"customer_email": email}, opts)
 	if err != nil {
 		return nil, err
 	}
